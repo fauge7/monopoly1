@@ -29,9 +29,9 @@ public class AboutState extends State{
 
 		this.batch = batch;
 
-		aboutPage = new Texture(Gdx.files.internal("about_page.png"));
-		backUp = new Texture(Gdx.files.internal("back_up.png"));
-		backDown = new Texture(Gdx.files.internal("back_down.png"));
+		aboutPage = new Texture(Gdx.files.internal("assets/about_page.png"));
+		backUp = new Texture(Gdx.files.internal("assets/back_up.png"));
+		backDown = new Texture(Gdx.files.internal("assets/back_down.png"));
 
 		backX = 50;
 		backY = 50;

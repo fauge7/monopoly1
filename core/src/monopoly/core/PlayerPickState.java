@@ -49,13 +49,13 @@ public class PlayerPickState extends State{
 
 		this.batch = batch;
 
-		background = new Texture(Gdx.files.internal("playerpick_background.png"));
-		twoPlayersUp = new Texture(Gdx.files.internal("two_players_up.png"));
-		twoPlayersDown = new Texture(Gdx.files.internal("two_players_down.png"));
-		threePlayersUp = new Texture(Gdx.files.internal("three_players_up.png"));
-		threePlayersDown = new Texture(Gdx.files.internal("three_players_down.png"));
-		fourPlayersUp = new Texture(Gdx.files.internal("four_players_up.png"));
-		fourPlayersDown = new Texture(Gdx.files.internal("four_players_down.png"));
+		background = new Texture(Gdx.files.internal("assets/playerpick_background.png"));
+		twoPlayersUp = new Texture(Gdx.files.internal("assets/two_players_up.png"));
+		twoPlayersDown = new Texture(Gdx.files.internal("assets/two_players_down.png"));
+		threePlayersUp = new Texture(Gdx.files.internal("assets/three_players_up.png"));
+		threePlayersDown = new Texture(Gdx.files.internal("assets/three_players_down.png"));
+		fourPlayersUp = new Texture(Gdx.files.internal("assets/four_players_up.png"));
+		fourPlayersDown = new Texture(Gdx.files.internal("assets/four_players_down.png"));
 
 		twoPlayersX = 20;
 		twoPlayersY = 200;

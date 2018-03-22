@@ -1226,7 +1226,7 @@ public class Board{
         JButton auctionButton;
         JLabel label;
 
-        public BuyPropertyWindow(Player player, Property property){
+        public BuyPropertyWindow(final Player player, final Property property){
         	frame = new JFrame("Buy Property");
         	frame.setVisible(true);
             label = new JLabel();
@@ -1466,7 +1466,7 @@ public class Board{
     	//creates a window with buttons
     	//with the names of other players on them
     	//to select trading partner
-    	public TradeWithWindow (Player trader){
+    	public TradeWithWindow (final Player trader){
     		panel = new JPanel();
     		label = new JLabel("Select who you would " +
     				"like to trade with.");
@@ -1579,7 +1579,7 @@ public class Board{
 
     	final int PROPERTY_COUNT = 28;
 
-    	TradeWindow(Player offerer, Player decider){
+    	TradeWindow(final Player offerer, final Player decider){
     		this.setTitle(offerer.getName() + ": MAKE YOUR OFFER!");
     		setBounds(300, 300, 600, 600);
     		panel = new JPanel();
