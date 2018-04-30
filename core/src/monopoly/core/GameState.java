@@ -1,12 +1,20 @@
 package monopoly.core;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Align;
 
 public class GameState extends State{
 
@@ -45,6 +53,7 @@ public class GameState extends State{
 	private Texture bootOwnedVert;
 	private Texture bootOwnedHoriz;
 	private Texture house;
+	private Texture diagwindow;
 
 	private BitmapFont fontTitle;
 	private BitmapFont fontDescription;
@@ -130,7 +139,9 @@ public class GameState extends State{
 	private boolean endGame;
 
 	private SpriteBatch batch;
+	private ShapeRenderer shapeRender;
 
+	public static ArrayList<DialogWindow> diagWindows;
 	public GameState(StateManager manager, SpriteBatch batch , int numPlayers){
 		super(manager);
 
@@ -170,6 +181,7 @@ public class GameState extends State{
 		house = new Texture(Gdx.files.internal("assets/house.png"));
 		payDebtUp = new Texture(Gdx.files.internal("assets/pay_debt_up.png"));
 		payDebtDown = new Texture(Gdx.files.internal("assets/pay_debt_down.png"));
+		diagwindow = new Texture(Gdx.files.internal("assets/DiagWindow.png"));
 
 		//Defines and initializes the font generators for the game
 		FreeTypeFontGenerator fontGeneratorBH = new FreeTypeFontGenerator(Gdx.files.internal("assets/blue_highway_d.ttf"));
@@ -267,6 +279,10 @@ public class GameState extends State{
 		fontGeneratorBH.dispose();
 		fontGeneratorBH2.dispose();
 		fontGeneratorBM.dispose();
+
+		shapeRender = new ShapeRenderer();
+		diagWindows = new ArrayList<DialogWindow>();
+		addDiagWindow("Ely is awesome", "this is some freakishly long text that you might want to consider spacing");
 	}
 
 	@Override
@@ -297,7 +313,7 @@ public class GameState extends State{
 					playerRolling = false;
 				}
 
-			//If the player touched the end turn button
+				//If the player touched the end turn button
 			}else if(playerChoosing && (coords.x >= endTurnLeft && coords.x <= endTurnRight) && (coords.y >= endTurnBottom && coords.y <= endTurnTop)){
 
 				endTurnPressed = true;
@@ -306,7 +322,7 @@ public class GameState extends State{
 				if(endTurnPressed && currentPlayerInDebt){
 
 					board.getPlayers().get(currentPlayer).setBankrupt(true);
-					new DialogWindow("Bankrupt", "Player " + (currentPlayer + 1) + " is now bankrupt.");
+					addDiagWindow("Bankrupt", "Player " + (currentPlayer + 1) + " is now bankrupt.",Color.WHITE);
 					System.out.println("Player " + (currentPlayer + 1) + " is now bankrupt");
 
 					//If in debt then check for if they owe a player
@@ -324,7 +340,7 @@ public class GameState extends State{
 				nextPlayer();
 				System.out.println("Player " + currentPlayer + " is now rolling");
 
-			//If the player touched the pay debt button
+				//If the player touched the pay debt button
 			}else if(playerChoosing && (coords.x >= payDebtLeft && coords.x <= payDebtRight) && (coords.y >= payDebtBottom && coords.y <= payDebtTop)){
 
 				board.payDebt(board.getPlayers().get(currentPlayer));
@@ -332,32 +348,35 @@ public class GameState extends State{
 				playerRolling = false;
 				board.getPlayers().get(currentPlayer).setInDebt(false);
 
-			//If the player touched the upgrade button
+				//If the player touched the upgrade button
 			}else if(playerChoosing && playerCanUpgrade && (coords.x >= upgradeLeft && coords.x <= upgradeRight) && (coords.y >= upgradeBottom && coords.y <= upgradeTop)){
 
 				upgradePressed = true;
 				new UpgradeWindow(board.getPlayers().get(currentPlayer), board.canUpgradeList(board.getPlayers().get(currentPlayer)), board);
 
-			//If the player touched the mortgage button
+				//If the player touched the mortgage button
 			}else if(playerChoosing && playerCanMortgage && (coords.x >= mortgageLeft && coords.x <= mortgageRight) && (coords.y >= mortgageBottom && coords.y <= mortgageTop)){
 
 				mortgagePressed = true;
 				new MortgageWindow(board.getPlayers().get(currentPlayer), board.canMortgageList(board.getPlayers().get(currentPlayer)), board);
 
-			//If the player touched the trade button
+				//If the player touched the trade button
 			}else if(playerChoosing && (coords.x >= tradeLeft && coords.x <= tradeRight) && (coords.y >= tradeBottom && coords.y <= tradeTop)){
 
 				tradePressed = true;
 				board.initiateTrade(board.getPlayers().get(currentPlayer));
 
-			//If the player touched the pay bail button
+				//If the player touched the pay bail button
 			}else if(playerChoosing && currentPlayerInJail && (coords.x >= payBailLeft && coords.x <= payBailRight) && (coords.y >= payBailBottom && coords.y <= payBailTop)){
 
 				payBailPressed = true;
 				board.payJail(board.getPlayers().get(currentPlayer));
 
 			}
-
+			if(diagWindows.size() > 0){
+				if(Gdx.input.justTouched())
+					diagWindows.remove(0);
+			}
 
 		}
 
@@ -388,7 +407,10 @@ public class GameState extends State{
 	@Override
 	public void render() {
 
+		camera.update();
 		batch.setProjectionMatrix(camera.combined);
+		shapeRender.setProjectionMatrix(camera.combined);
+		//		System.out.println(diagWindows.size());
 		batch.begin();
 
 		//Draw the board background
@@ -492,7 +514,32 @@ public class GameState extends State{
 
 		//Draw the icons for current player's turn
 		drawIcons();
-
+		for(DialogWindow w : diagWindows){
+			w.update();
+		}
+		Iterator iter = diagWindows.iterator();
+		while(iter.hasNext()){
+			DialogWindow w = (DialogWindow) iter.next();
+			if(w.deltaTime > w.MAXTIME){
+				iter.remove();
+			}
+		}
+		for(DialogWindow w : diagWindows){
+			batch.setColor(w.color);
+			int x = Gdx.graphics.getWidth()/2-diagwindow.getWidth()/2;
+			int y = Gdx.graphics.getHeight()/2-diagwindow.getHeight()/2;
+			batch.draw(diagwindow, x, y);
+			batch.setColor(Color.WHITE);
+//			GlyphLayout lay = new GlyphLayout(fontDescription, w.message);
+			GlyphLayout lay = new GlyphLayout(fontDescription,w.message,Color.BLACK,360,Align.center,true);
+			fontDescription.setColor(Color.BLACK);
+//			fontDescription.draw(batch, w.message, position.x, position.y);
+			fontDescription.draw(batch, lay, x+lay.width/2-lay.width/2, y+diagwindow.getHeight()/2+20);
+			
+			
+			
+			fontTitle.draw(batch, w.title, x+10, y+diagwindow.getHeight()-10);
+		}
 		batch.end();
 	}
 
@@ -1000,5 +1047,12 @@ public class GameState extends State{
 		}
 
 	}
-
+	public static void addDiagWindow(String title,String message,Color color){
+		System.out.println("Window added");
+		diagWindows.add(new DialogWindow(title, message,color,false));
+	}
+	public static void addDiagWindow(String title,String message){
+		System.out.println("Window added");
+		diagWindows.add(new DialogWindow(title, message,Color.WHITE,false));
+	}
 }

@@ -42,12 +42,12 @@ public class MortgageWindow {
 		frame.repaint();
 	}
 	public JPanel createPanel(){
-		JPanel tempPanel = new JPanel();
+		final JPanel tempPanel = new JPanel();
 
 		tempPanel.setLayout(new GridBagLayout());
 		tempPanel.setBackground(Color.white);
 
-		String[] tempproperty = new String[property.size()];
+		final String[] tempproperty = new String[property.size()];
 		for(int i = 0;i < property.size();i++){
 			tempproperty[i] = property.get(i).getName();
 		}
@@ -67,7 +67,7 @@ public class MortgageWindow {
 		c.gridy = 0;
 		tempPanel.add(text, c);
 
-		JList<String> list = new JList<String>(tempproperty);
+		final JList<String> list = new JList<String>(tempproperty);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		list.setLayoutOrientation(JList.VERTICAL);
 		list.setVisibleRowCount(-1);

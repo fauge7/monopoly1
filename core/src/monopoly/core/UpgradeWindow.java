@@ -42,12 +42,12 @@ public class UpgradeWindow{
 		frame.repaint();
 	}
 	public JPanel createPanel(){
-		JPanel tempPanel = new JPanel();
+		final JPanel tempPanel = new JPanel();
 
 		tempPanel.setLayout(new GridBagLayout());
 		tempPanel.setBackground(Color.WHITE);
 
-		String[] tempLots = new String[lots.size()];
+		final String[] tempLots = new String[lots.size()];
 		for(int i = 0;i < lots.size();i++){
 			tempLots[i] = lots.get(i).getName();
 		}
@@ -69,7 +69,7 @@ public class UpgradeWindow{
 
 		c.gridwidth = 1;
 
-		JList<String> list = new JList<String>(tempLots);
+		final JList<String> list = new JList<String>(tempLots);
 		createList(tempLots,list);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		list.setLayoutOrientation(JList.VERTICAL);
