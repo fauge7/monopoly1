@@ -1,9 +1,11 @@
 package monopoly.core;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
 
 import javax.swing.JButton;
@@ -16,13 +18,11 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.badlogic.gdx.Game;
-import com.badlogic.gdx.graphics.Color;
-
 public class Board{
 	private Random random;
 	private ArrayList<Player> players;
 	private Space[] spaces;
+	public static ArrayList<Space> mortgageProperties;
 
 	final int CHANCE_CARD_COUNT = 15;
 	final int COMMUNITY_CHEST_CARD_COUNT = 16;
@@ -36,7 +36,7 @@ public class Board{
 
 		players = new ArrayList<Player>();
 		spaces = new Space[MAX_SPACES];
-
+		mortgageProperties = new ArrayList<Space>();
 		initializeSpaces();
 	}
 
@@ -51,7 +51,7 @@ public class Board{
 	}
 	//Adds a Player object to the players ArrayList
 	public void addPlayer(String name,int token){
-		players.add(new Player(name,token));
+			players.add(new Player(name,token));
 	}
 
 	//Checks whether or not the game has ended
@@ -75,8 +75,7 @@ public class Board{
 	public void winner(){
 		for(int i = 0;i < players.size();i++){
 			if(players.get(i).getBankrupt() == false){
-				//				GameState.addDiagWindow();
-				GameState.addDiagWindow("Winner",players.get(i).getName() + " wins!!!");
+				new DialogWindow("Winner",players.get(i).getName() + " wins!!!");
 			}
 		}
 	}
@@ -100,25 +99,23 @@ public class Board{
 			//If a player rolls doubles they are free
 			if(dice1 == dice2){
 				players.get(playerNumber).setInJail(false);
-				GameState.addDiagWindow("Jail",players.get(playerNumber).getName() + " rolled doubles and was released.",Color.LIGHT_GRAY);
-
+				new DialogWindow("Jail",players.get(playerNumber).getName() + " rolled doubles and was released.",Color.LIGHT_GRAY);
 				totalRolled = dice1 + dice2;
 			}
 			//If the player does not roll doubles jailTurn++
 			else if(dice1 != dice2 && players.get(playerNumber).getJailTurns() < ((Jail)spaces[10]).getJailTime()){
 				players.get(playerNumber).incrementJailTurns();
 				if(players.get(playerNumber).getJailTurns() == 1){
-					GameState.addDiagWindow("Jail",players.get(playerNumber).getName() + " did not roll doubles. They have spent " + players.get(playerNumber).getJailTurns() + " turn in jail.",Color.LIGHT_GRAY);
-
+					new DialogWindow("Jail",players.get(playerNumber).getName() + " did not roll doubles. They have spent " + players.get(playerNumber).getJailTurns() + " turn in jail.",Color.LIGHT_GRAY);
 				}
 				else{
-					GameState.addDiagWindow("Jail",players.get(playerNumber).getName() + " did not roll doubles. They have spent " + players.get(playerNumber).getJailTurns() + " turns in jail.",Color.LIGHT_GRAY);
+					new DialogWindow("Jail",players.get(playerNumber).getName() + " did not roll doubles. They have spent " + players.get(playerNumber).getJailTurns() + " turns in jail.",Color.LIGHT_GRAY);
 				}
 			}
 			//If the player has spent that max turns in jail pay the fine and be released
 			else{
 				players.get(playerNumber).subtractCash(((Jail)spaces[10]).getJailFine());
-				GameState.addDiagWindow("Jail",players.get(playerNumber).getName() + " has been fined $" + ((Jail)spaces[10]).getJailFine() + " and released.",Color.LIGHT_GRAY);
+				new DialogWindow("Jail",players.get(playerNumber).getName() + " has been fined $" + ((Jail)spaces[10]).getJailFine() + " and released.",Color.LIGHT_GRAY);
 				players.get(playerNumber).setInJail(false);
 				totalRolled = dice1 + dice2;
 			}
@@ -134,7 +131,7 @@ public class Board{
 			else if(dice1 == dice2 && !players.get(playerNumber).getInJail()){
 				players.get(playerNumber).setRollAgain(true);
 				players.get(playerNumber).incrementDoublesCount();
-				GameState.addDiagWindow("Doubles",players.get(playerNumber).getName() + " rolled doubles!");
+				new DialogWindow("Doubles",players.get(playerNumber).getName() + " rolled doubles!");
 			}
 
 			//Moves the player to jail if they rolled doubles three times
@@ -143,8 +140,7 @@ public class Board{
 				players.get(playerNumber).setDoublesCount(0);
 
 				//Arrest the Player and announces it
-				GameState.addDiagWindow("Arrested",players.get(playerNumber).getName() + " has been arrested for rolling doubles three times.",Color.LIGHT_GRAY);
-
+				new DialogWindow("Arrested",players.get(playerNumber).getName() + " has been arrested for rolling doubles three times.",Color.LIGHT_GRAY);
 				players.get(playerNumber).setPosition(10);
 				players.get(playerNumber).setInJail(true);
 			}
@@ -169,82 +165,82 @@ public class Board{
 	//Rolls the dice for a given Player object
 	public int rollDice(Player player){
 		//Maximum and Minimum roll constants
-		final int MAX_ROLL = 6;
-		final int MIN_ROLL = 1;
+				final int MAX_ROLL = 6;
+				final int MIN_ROLL = 1;
 
-		//Assigns two dice to a value between one and six
-		int dice1 = random.nextInt(MAX_ROLL - MIN_ROLL + 1) + MIN_ROLL;
-		int dice2 = random.nextInt(MAX_ROLL - MIN_ROLL + 1) + MIN_ROLL;
+				//Assigns two dice to a value between one and six
+				int dice1 = random.nextInt(MAX_ROLL - MIN_ROLL + 1) + MIN_ROLL;
+				int dice2 = random.nextInt(MAX_ROLL - MIN_ROLL + 1) + MIN_ROLL;
 
-		//Tracks the total value of the players rolls
-		int totalRolled = 0;
+				//Tracks the total value of the players rolls
+				int totalRolled = 0;
 
-		if(player.getInJail()){
-			//If a player rolls doubles they are free
-			if(dice1 == dice2){
-				player.setInJail(false);
-				GameState.addDiagWindow("Jail",player.getName() + " rolled doubles and was released.");
-				totalRolled = dice1 + dice2;
-			}
-			//If the player does not roll doubles jailTurn++
-			else if(dice1 != dice2 && player.getJailTurns() < ((Jail)spaces[10]).getJailTime()){
-				player.incrementJailTurns();
-				if(player.getJailTurns() == 1){
-					GameState.addDiagWindow("Jail",player.getName() + " did not roll doubles. They have spent " + player.getJailTurns() + " turn in jail.",Color.LIGHT_GRAY);
+				if(player.getInJail()){
+					//If a player rolls doubles they are free
+					if(dice1 == dice2){
+						player.setInJail(false);
+						new DialogWindow("Jail",player.getName() + " rolled doubles and was released.");
+						totalRolled = dice1 + dice2;
+					}
+					//If the player does not roll doubles jailTurn++
+					else if(dice1 != dice2 && player.getJailTurns() < ((Jail)spaces[10]).getJailTime()){
+						player.incrementJailTurns();
+						if(player.getJailTurns() == 1){
+							new DialogWindow("Jail",player.getName() + " did not roll doubles. They have spent " + player.getJailTurns() + " turn in jail.",Color.LIGHT_GRAY);
+						}
+						else{
+							new DialogWindow("Jail",player.getName() + " did not roll doubles. They have spent " + player.getJailTurns() + " turns in jail.",Color.LIGHT_GRAY);
+						}
+					}
+					//If the player has spent that max turns in jail pay the fine and be released
+					else{
+						player.subtractCash(((Jail)spaces[10]).getJailFine());
+						new DialogWindow("Jail",player.getName() + " has been fined $" + ((Jail)spaces[10]).getJailFine() + " and released.");
+						player.setInJail(false);
+						totalRolled = dice1 + dice2;
+					}
 				}
 				else{
-					GameState.addDiagWindow("Jail",player.getName() + " did not roll doubles. They have spent " + player.getJailTurns() + " turns in jail.",Color.LIGHT_GRAY);
+					//The players total roll
+					totalRolled = dice1 + dice2;
+
+					if(dice1 != dice2){
+						player.setRollAgain(false);
+						player.setDoublesCount(0);
+					}
+					else if(dice1 == dice2 && !player.getInJail()){
+						player.setRollAgain(true);
+						player.incrementDoublesCount();
+						new DialogWindow("Doubles",player.getName() + " rolled doubles!");
+					}
+
+					//Moves the player to jail if they rolled doubles three times
+					if(player.getDoublesCount() == 3){
+						player.setRollAgain(false);
+						player.setDoublesCount(0);
+
+						//Arrest the Player and announces it
+						new DialogWindow("Arrested",player.getName() + " has been arrested for rolling doubles three times.");
+						player.setPosition(10);
+						player.setInJail(true);
+					}
 				}
-			}
-			//If the player has spent that max turns in jail pay the fine and be released
-			else{
-				player.subtractCash(((Jail)spaces[10]).getJailFine());
-				GameState.addDiagWindow("Jail",player.getName() + " has been fined $" + ((Jail)spaces[10]).getJailFine() + " and released.");
-				player.setInJail(false);
-				totalRolled = dice1 + dice2;
-			}
-		}
-		else{
-			//The players total roll
-			totalRolled = dice1 + dice2;
 
-			if(dice1 != dice2){
-				player.setRollAgain(false);
-				player.setDoublesCount(0);
-			}
-			else if(dice1 == dice2 && !player.getInJail()){
-				player.setRollAgain(true);
-				player.incrementDoublesCount();
-				GameState.addDiagWindow("Doubles",player.getName() + " rolled doubles!");
-			}
+				//Increments the players position if they are not in jail
+				if(player.getInJail() == false){
 
-			//Moves the player to jail if they rolled doubles three times
-			if(player.getDoublesCount() == 3){
-				player.setRollAgain(false);
-				player.setDoublesCount(0);
+					//Adds 200 if they pass go on their roll
+					if(player.getPosition() + totalRolled >= 40){
+						player.addCash(200);
+						System.out.println("Passed Go");
+					}
 
-				//Arrest the Player and announces it
-				GameState.addDiagWindow("Arrested",player.getName() + " has been arrested for rolling doubles three times.");
-				player.setPosition(10);
-				player.setInJail(true);
-			}
-		}
+					player.incrementPosition(totalRolled);
+					player.setLastRoll(totalRolled);
 
-		//Increments the players position if they are not in jail
-		if(player.getInJail() == false){
-
-			//Adds 200 if they pass go on their roll
-			if(player.getPosition() + totalRolled >= 40){
-				player.addCash(200);
-				System.out.println("Passed Go");
-			}
-
-			player.incrementPosition(totalRolled);
-			player.setLastRoll(totalRolled);
-
-			interact(player,spaces[player.getPosition()]);
-		}
-		return totalRolled;
+					interact(player,spaces[player.getPosition()]);
+				}
+				return totalRolled;
 	}
 
 	// ** All methods related the the Player buying and selling houses **
@@ -397,12 +393,12 @@ public class Board{
 		//Checks if the player can afford the house
 		if(player.getCash() < lot.getHouseCost()){
 			canBuyHouse = false;
-			GameState.addDiagWindow("Cannot Upgrade",player.getName() + " cannot afford to upgrade that property.");
+			new DialogWindow("Cannot Upgrade",player.getName() + " cannot afford to upgrade that property.");
 		}
 		//Checks if the Lot is already fully upgraded
 		else if(lot.getHotel()){
 			canBuyHouse = false;
-			GameState.addDiagWindow("Cannot Upgrade","That property is already fully upgraded.");
+			new DialogWindow("Cannot Upgrade","That property is already fully upgraded.");
 		}
 
 		return canBuyHouse;
@@ -419,7 +415,7 @@ public class Board{
 		player.incrementHouseCount();
 		lot.buildHouse();
 
-		GameState.addDiagWindow("Upgrade",player.getName() + " has upgraded " + lot.getName());
+		new DialogWindow("Upgrade",player.getName() + " has upgraded " + lot.getName());
 	}
 	//Checks if the given Player can sell a house on the given Lot
 	public boolean canSellHouse(Player player,Lot lot){
@@ -430,7 +426,7 @@ public class Board{
 			canSellHouse = true;
 
 		}else{
-			GameState.addDiagWindow("Cannot Downgrade","That property has not been upgraded.");
+			new DialogWindow("Cannot Downgrade","That property has not been upgraded.");
 		}
 		return canSellHouse;
 	}
@@ -446,7 +442,7 @@ public class Board{
 		player.decrementHouseCount();
 		lot.sellHouse();
 
-		GameState.addDiagWindow("Downgrade",player.getName() + " has downgraded " + lot.getName());
+		new DialogWindow("Downgrade",player.getName() + " has downgraded " + lot.getName());
 	}
 
 	// ** Methods related to the Player getting out of jail **
@@ -539,7 +535,7 @@ public class Board{
 		//Checks if the player is mortgaged
 		if(property.getMortgaged()){
 			canMortgage = false;
-			GameState.addDiagWindow("Cannot Mortgage",property.getName() + " is already mortgaged.");
+			new DialogWindow("Cannot Mortgage",property.getName() + " is already mortgaged.");
 		}
 
 		return canMortgage;
@@ -556,8 +552,11 @@ public class Board{
 
 		//Sets the property as mortgaged
 		property.setMortgaged(true);
-
-		GameState.addDiagWindow("Mortgaged",property.getOwner().getName() + " has mortgaged " + property.getName());
+		mortgageProperties.add(property);
+		
+		
+		
+		new DialogWindow("Mortgaged",property.getOwner().getName() + " has mortgaged " + property.getName());
 	}
 	//Checks if the given Player can unmortgage
 	public boolean canUnmortgage(Player player,Property property){
@@ -568,7 +567,7 @@ public class Board{
 			canUnmortgage = true;
 		}
 		else{
-			GameState.addDiagWindow("Cannot Unmortgage",player.getName() + " cannot unmortgage that property.");
+			new DialogWindow("Cannot Unmortgage",player.getName() + " cannot unmortgage that property.");
 		}
 
 		return canUnmortgage;
@@ -585,8 +584,16 @@ public class Board{
 
 		//Sets the property as mortgaged
 		property.setMortgaged(false);
+		Iterator<Space> iter = mortgageProperties.iterator();
+		while(iter.hasNext()){
+		  Space p = (Space) iter.next();
+		  if(p.name.equals(property.name)){
+		    iter.remove();
+		  }
+		}
+		
 
-		GameState.addDiagWindow("Unmortgaged",property.getOwner().getName() + " has unmortgaged " + property.getName());
+		new DialogWindow("Unmortgaged",property.getOwner().getName() + " has unmortgaged " + property.getName());
 	}
 
 	// ** Methods related to buying and selling Property **
@@ -682,41 +689,41 @@ public class Board{
 
 	//Calculates the rent a Player owes for landing on a Property
 	public int calcRent(Player player,Space space){
-		Player owner = ((Property)space).getOwner();
+    	Player owner = ((Property)space).getOwner();
 
-		final int ONE_UTILITY = 4;
-		final int TWO_UTILITY = 10;
+    	final int ONE_UTILITY = 4;
+    	final int TWO_UTILITY = 10;
 
-		int rent = 0;
-		if(space instanceof Lot){
-			rent = ((Lot)space).getRent();
-		}
-		else if(space instanceof Utility){
-			int lastRoll = player.getLastRoll();
-			int utilitiesOwned = owner.getUtilitiesOwned();
-			if(utilitiesOwned == 1){
-				rent = lastRoll * ONE_UTILITY;
-			}
-			else{
-				rent = lastRoll * TWO_UTILITY;
-			}
+    	int rent = 0;
+    	if(space instanceof Lot){
+    		rent = ((Lot)space).getRent();
+    	}
+    	else if(space instanceof Utility){
+    		int lastRoll = player.getLastRoll();
+    		int utilitiesOwned = owner.getUtilitiesOwned();
+    		if(utilitiesOwned == 1){
+    			rent = lastRoll * ONE_UTILITY;
+    		}
+    		else{
+    			rent = lastRoll * TWO_UTILITY;
+    		}
 
-		}
-		else if(space instanceof Railroad){
-			int railroadsOwned = owner.getRailroadsOwned();
-			System.out.println(owner.getName() + " | railroadsOwned: " + railroadsOwned);
-			rent = ((Railroad)space).getRent(railroadsOwned);
-		}
+    	}
+    	else if(space instanceof Railroad){
+    		int railroadsOwned = owner.getRailroadsOwned();
+    		System.out.println(owner.getName() + " | railroadsOwned: " + railroadsOwned);
+    		rent = ((Railroad)space).getRent(railroadsOwned);
+    	}
 
-		return rent;
-	}
+    	return rent;
+    }
 
 	// ** Methods for Charging the a Player
 
 	public void charge(Player player,int amount){
 		//Player does not have enough cash to pay
 		if(!player.canPay(amount)){
-			GameState.addDiagWindow("In Debt",player.getName() + " owes $" + player.getDebt() + " if they do not pay before ending their turn they lose.",Color.RED);
+			new DialogWindow("In Debt",player.getName() + " owes $" + player.getDebt() + " if they do not pay before ending their turn they lose.",Color.RED);
 			player.setInDebt(true);
 			player.setDebt(amount);
 		}
@@ -729,26 +736,26 @@ public class Board{
 	}
 	public void charge(Player player,int amount,Player recipient){
 		//Player does not have enough cash to pay
-		if(!player.canPay(amount)){
-			GameState.addDiagWindow("In Debt",player.getName() + " owes " + recipient.getName() + " $" + player.getDebt() + ", if they do not pay before ending their turn they lose.",Color.RED);
-			player.setInDebt(true);
-			player.setDebt(amount);
+				if(!player.canPay(amount)){
+					new DialogWindow("In Debt",player.getName() + " owes " + recipient.getName() + " $" + player.getDebt() + ", if they do not pay before ending their turn they lose.",Color.RED);
+					player.setInDebt(true);
+					player.setDebt(amount);
 
-		}
-		//Player has enough cash
-		else{
-			player.setInDebt(false);
-			player.setDebt(0);
-			player.subtractCash(amount);
-			recipient.addCash(amount);
+				}
+				//Player has enough cash
+				else{
+					player.setInDebt(false);
+					player.setDebt(0);
+					player.subtractCash(amount);
+					recipient.addCash(amount);
 
-		}
+				}
 	}
 	//Pays the Player's debt
 	public void payDebt(Player player){
 		if(player.getOwesPlayer()){
 			charge(player,player.getDebt(),player.getPlayerOwed());
-
+			
 		}
 		else{
 			charge(player,player.getDebt());
@@ -881,7 +888,7 @@ public class Board{
 		spaces[39] = new Lot("Boardwalk",400,new int[]{50,200,600,1400,1700,2000},200,200);
 	}
 
-	public void interact(Player player,Space space){
+    public void interact(Player player,Space space){
 		String output = new String();
 		int rent = 0;
 
@@ -896,316 +903,316 @@ public class Board{
 			}
 			else if(property.getMortgaged() == false){
 				rent = calcRent(player,property);
-				GameState.addDiagWindow("Rent Owed",player.getName() + " has landed on " + property.getName() + " and owes " + property.getOwner().getName() + " $" + rent + " in rent");
+				new DialogWindow("Rent Owed",player.getName() + " has landed on " + property.getName() + " and owes " + property.getOwner().getName() + " $" + rent + " in rent");
 				charge(player,rent,property.getOwner());
 			}
 		}
 		else if (space instanceof IncomeTax){
-			output = player.getName() + " has landed on Income Tax. They must pay $200 to the bank.";
-			GameState.addDiagWindow("Income Tax",player.getName() + " has landed on Income Tax and must pay $200");
-			charge(player,200);
-		} else if (space instanceof CommunityChest){
-			output = player.getName() + " draws a Community Chest card...";
-			drawChest(player);
-		} else if (space instanceof Chance){
-			output = player.getName() + " draws a Chance card...";
-			drawChance(player);
-		}
-		else if (space instanceof GoToJail){
-			GameState.addDiagWindow("Go To Jail","Go directly to jail. Do not pass Go. Do not collect $200.");
-			player.setInJail(true);
-			player.setPosition(10);
-		} else if (space instanceof LuxuryTax){
-			GameState.addDiagWindow("Luxury Tax",player.getName() + " must pay $" + ((LuxuryTax)space).getAmount() + " in taxes.");
-			charge(player,((LuxuryTax)space).getAmount());
-		} else {
-			output = "Nothing happens.";
-		}
+            output = player.getName() + " has landed on Income Tax. They must pay $200 to the bank.";
+            new DialogWindow("Income Tax",player.getName() + " has landed on Income Tax and must pay $200");
+            charge(player,200);
+        } else if (space instanceof CommunityChest){
+            output = player.getName() + " draws a Community Chest card...";
+            drawChest(player);
+        } else if (space instanceof Chance){
+        	output = player.getName() + " draws a Chance card...";
+        	drawChance(player);
+        }
+        else if (space instanceof GoToJail){
+            new DialogWindow("Go To Jail","Go directly to jail. Do not pass Go. Do not collect $200.");
+            player.setInJail(true);
+            player.setPosition(10);
+        } else if (space instanceof LuxuryTax){
+            new DialogWindow("Luxury Tax",player.getName() + " must pay $" + ((LuxuryTax)space).getAmount() + " in taxes.");
+            charge(player,((LuxuryTax)space).getAmount());
+        } else {
+            output = "Nothing happens.";
+        }
 		System.out.println(output);
 	}
 
-	////////
-	//interact() HELPER FUNCTIONS
-	////////
-	public void drawChance(Player player){
-		Random randInt = new Random();
-		//Selects the chance card to draw
+    ////////
+    //interact() HELPER FUNCTIONS
+    ////////
+    public void drawChance(Player player){
+        Random randInt = new Random();
+        //Selects the chance card to draw
 
-		switch (randInt.nextInt(CHANCE_CARD_COUNT + 1)){
+        switch (randInt.nextInt(CHANCE_CARD_COUNT + 1)){
 
-		case 0:
-			//Advance to the nearest railroad
-			//This space is Short Line RR
-			GameState.addDiagWindow("Chance","Advance to the nearest Railroad!",Color.ORANGE);		//Used to be double rent
-			//waitForClose(card);
-			if (player.getPosition() >= 35){
-				//Reading Railroad
-				player.setPosition(5);
-				//passed Go
-				player.addCash(200);
-				interact(player, spaces[5]);
-				//interact(player, spaces[5]);
-				//Between Short Line and B&O
-			} else if (player.getPosition() >= 25){
-				player.setPosition(35);
-				interact(player, spaces[35]);
-				//interact(player, spaces[35]);
-				//Between Penn. and B&O
-			} else if (player.getPosition() >= 15){
-				player.setPosition(25);
-				interact(player, spaces[25]);
-				//interact(player, spaces[25]);
-				//Between Reading and Penn.
-			} else if (player.getPosition() >= 5){
-				player.setPosition(15);
-				interact(player, spaces[15]);
-				//interact(player, spaces[15]);
-				//Between Reading and Go
-			} else {
-				player.setPosition(5);
-				interact(player, spaces[5]);
-				//interact(player, spaces[5]);
-			}
-			break;
-		case 1:
-			//Collect 150
-			GameState.addDiagWindow("Chance","Your building loan matures, collect $150.",Color.ORANGE);
-			//waitForClose(card);
-			player.addCash(150);
-			break;
-		case 2:
-			//Go back 3 spaces
-			//Luckily, no possibility of passing Go.
-			GameState.addDiagWindow("Chance","Go back 3 spaces.",Color.ORANGE);
-			//waitForClose(card);
-			player.setPosition(player.getPosition() - 3);
-			interact(player, spaces[player.getPosition()]);
-			break;
-		case 3:
-			//pay $15
-			GameState.addDiagWindow("Chance","Pay poor tax of $15.",Color.ORANGE);
-			//waitForClose(card);
-			charge(player,15);
-			break;
-		case 4:
-			//Boardwalk
-			GameState.addDiagWindow("Chance","Advance token to Boardwalk.",Color.ORANGE);
-			//waitForClose(card);
-			//Can't pass Go
-			//Boardwalk
-			player.setPosition(39);
-			interact(player, spaces[39]);
-			break;
-		case 5:
-			//collect 50
-			GameState.addDiagWindow("Chance","Bank pays you dividend of $50.",Color.ORANGE);
-			//waitForClose(card);
-			player.addCash(50);
-			break;
-		case 6:
-			//go to jail
-			GameState.addDiagWindow("Chance","Go directly to Jail. Do not pass Go. Do not collect $200.",Color.ORANGE);
-			//waitForClose(card);
-			player.setInJail(true);
-			//Jail space
-			player.setPosition(10);
-			break;
-		case 7:
-			//RRR
-			GameState.addDiagWindow("Chance","Take a ride on the Reading Railroad. If you pass Go, collect $200.",Color.ORANGE);
-			//waitForClose(card);
-			//Check for passing go
-			if (player.getPosition() >= 5){
-				player.addCash(200);
-			}
-			player.setPosition(5);
-			interact(player, spaces[5]);
-			break;
-		case 8:
-			//To St. Charles
-			GameState.addDiagWindow("Chance","Advance to St. Charles Place.",Color.ORANGE);
-			//waitForClose(card);
+            case 0:
+                //Advance to the nearest railroad
+                                        //This space is Short Line RR
+                new DialogWindow("Chance","Advance to the nearest Railroad!",Color.ORANGE);		//Used to be double rent
+                //waitForClose(card);
+                if (player.getPosition() >= 35){
+                                    //Reading Railroad
+                    player.setPosition(5);
+                    //passed Go
+                    player.addCash(200);
+                    interact(player, spaces[5]);
+                    //interact(player, spaces[5]);
+                                            //Between Short Line and B&O
+                } else if (player.getPosition() >= 25){
+                    player.setPosition(35);
+                    interact(player, spaces[35]);
+                    //interact(player, spaces[35]);
+                                                //Between Penn. and B&O
+                } else if (player.getPosition() >= 15){
+                    player.setPosition(25);
+                    interact(player, spaces[25]);
+                    //interact(player, spaces[25]);
+                                                //Between Reading and Penn.
+                } else if (player.getPosition() >= 5){
+                    player.setPosition(15);
+                    interact(player, spaces[15]);
+                    //interact(player, spaces[15]);
+                    //Between Reading and Go
+                } else {
+                    player.setPosition(5);
+                    interact(player, spaces[5]);
+                   //interact(player, spaces[5]);
+                }
+                break;
+            case 1:
+                //Collect 150
+                new DialogWindow("Chance","Your building loan matures, collect $150.",Color.ORANGE);
+                //waitForClose(card);
+                player.addCash(150);
+                break;
+            case 2:
+                //Go back 3 spaces
+                //Luckily, no possibility of passing Go.
+                new DialogWindow("Chance","Go back 3 spaces.",Color.ORANGE);
+                //waitForClose(card);
+                player.setPosition(player.getPosition() - 3);
+                interact(player, spaces[player.getPosition()]);
+                break;
+            case 3:
+                //pay $15
+                new DialogWindow("Chance","Pay poor tax of $15.",Color.ORANGE);
+                //waitForClose(card);
+                charge(player,15);
+                break;
+            case 4:
+                //Boardwalk
+                new DialogWindow("Chance","Advance token to Boardwalk.",Color.ORANGE);
+                //waitForClose(card);
+                //Can't pass Go
+                                //Boardwalk
+                player.setPosition(39);
+                interact(player, spaces[39]);
+                break;
+            case 5:
+                //collect 50
+                new DialogWindow("Chance","Bank pays you dividend of $50.",Color.ORANGE);
+                //waitForClose(card);
+                player.addCash(50);
+                break;
+            case 6:
+                //go to jail
+                new DialogWindow("Chance","Go directly to Jail. Do not pass Go. Do not collect $200.",Color.ORANGE);
+                //waitForClose(card);
+                player.setInJail(true);
+                                //Jail space
+                player.setPosition(10);
+                break;
+            case 7:
+                //RRR
+                new DialogWindow("Chance","Take a ride on the Reading Railroad. If you pass Go, collect $200.",Color.ORANGE);
+                //waitForClose(card);
+                //Check for passing go
+                if (player.getPosition() >= 5){
+                    player.addCash(200);
+                }
+                player.setPosition(5);
+                interact(player, spaces[5]);
+                break;
+            case 8:
+                //To St. Charles
+                new DialogWindow("Chance","Advance to St. Charles Place.",Color.ORANGE);
+                //waitForClose(card);
 
-			//check for passing Go
-			if (player.getPosition() >= 11){
-				player.addCash(200);
-			}
-			//St.Charles Place
-			player.setPosition(11);
-			interact(player, spaces[11]);
-			break;
-		case 9:
-			//move to Nearest Utility.
-			GameState.addDiagWindow("Chance","Advance Token to nearest Utility.",Color.ORANGE);
-			//waitForClose(card);
-			//Check for passing Go, and which Utility.
-			//WaterWorks
-			if (player.getPosition() >= 28){
-				player.addCash(200);
-				//Electric Co.
-				player.setPosition(12);
-			} else if (player.getPosition() >= 12){
-				player.setPosition(28);
-			} else {
-				player.setPosition(12);
-			}
-			interact(player, spaces[player.getPosition()]);
-			break;
-		case 10:
-			//pay all players 50
-			GameState.addDiagWindow("Chance","You are elected chairman of the board. "+
-					"pay each player $50.",Color.YELLOW);
-			//waitForClose(card);
-			for (int i = 0; i < players.size(); i++){
-				if (players.get(i) != player && ! players.get(i).getBankrupt()){
-					charge(player,50,players.get(i));
-					////////////////////////////////////////////////player.charge(50, players.get(i));	////////////////////////////////WAS player[i]
-				}
-			}
-			break;
-		case 11:
-			//Get out of Jail free
-			GameState.addDiagWindow("Chance","Get out of Jail free.",Color.ORANGE);
-			//waitForClose(card);
-			player.incrementJailFreeCards();
-			break;
-		case 12:
-			//Advance to Illinois ave.
-			GameState.addDiagWindow("Chance","Advance to Illinois Ave.",Color.ORANGE);
-			//waitForClose(card);
-			//check for passing go
-			//Illinois ave.
-			if (player.getPosition() >= 24){
-				player.addCash(200);
-			}
-			player.setPosition(24);
-			interact(player, spaces[player.getPosition()]);
-			break;
-		case 13:
-			//Advance to Go.
-			GameState.addDiagWindow("Chance","Advance to Go.",Color.ORANGE);
-			//waitForClose(card);
-			player.addCash(200);
-			break;
-		default:
-			//property repairs: 25, 100
-			GameState.addDiagWindow("Chance","Make general repairs on all your property: for each house, " +
-					"pay $25. for each hotel, pay $100",Color.ORANGE);
-			//waitForClose(card);
-			charge(player,25*player.getHouseCount() + 100*player.getHotelCount());
-		}
-	}
+                //check for passing Go
+                if (player.getPosition() >= 11){
+                    player.addCash(200);
+                }
+                                //St.Charles Place
+                player.setPosition(11);
+                interact(player, spaces[11]);
+                break;
+            case 9:
+                //move to Nearest Utility.
+                new DialogWindow("Chance","Advance Token to nearest Utility.",Color.ORANGE);
+                //waitForClose(card);
+                //Check for passing Go, and which Utility.
+                                        //WaterWorks
+                if (player.getPosition() >= 28){
+                    player.addCash(200);
+                                   //Electric Co.
+                    player.setPosition(12);
+                } else if (player.getPosition() >= 12){
+                    player.setPosition(28);
+                } else {
+                    player.setPosition(12);
+                }
+                interact(player, spaces[player.getPosition()]);
+                break;
+            case 10:
+                //pay all players 50
+                new DialogWindow("Chance","You are elected chairman of the board. "+
+                        "pay each player $50.",Color.YELLOW);
+                //waitForClose(card);
+                for (int i = 0; i < players.size(); i++){
+                    if (players.get(i) != player && ! players.get(i).getBankrupt()){
+                    	charge(player,50,players.get(i));
+                        ////////////////////////////////////////////////player.charge(50, players.get(i));	////////////////////////////////WAS player[i]
+                    }
+                }
+                break;
+            case 11:
+                //Get out of Jail free
+                new DialogWindow("Chance","Get out of Jail free.",Color.ORANGE);
+                //waitForClose(card);
+                player.incrementJailFreeCards();
+                break;
+            case 12:
+                //Advance to Illinois ave.
+                new DialogWindow("Chance","Advance to Illinois Ave.",Color.ORANGE);
+                //waitForClose(card);
+                //check for passing go
+                            //Illinois ave.
+                if (player.getPosition() >= 24){
+                    player.addCash(200);
+                }
+                player.setPosition(24);
+                interact(player, spaces[player.getPosition()]);
+                break;
+            case 13:
+                //Advance to Go.
+                new DialogWindow("Chance","Advance to Go.",Color.ORANGE);
+                //waitForClose(card);
+                player.addCash(200);
+                break;
+            default:
+                //property repairs: 25, 100
+                new DialogWindow("Chance","Make general repairs on all your property: for each house, " +
+                        "pay $25. for each hotel, pay $100",Color.ORANGE);
+                //waitForClose(card);
+                charge(player,25*player.getHouseCount() + 100*player.getHotelCount());
+        }
+    }
 
-	public void drawChest(Player player){
-		Random randInt = new Random();
-		switch (randInt.nextInt(COMMUNITY_CHEST_CARD_COUNT + 1)){
-		case 0:
-			//Go to Jail
-			GameState.addDiagWindow("Community Chest","Go directly to Jail. Do not pass go, do not collect $200.",Color.YELLOW);
-			//waitForClose(card);
-			player.setPosition(10);
-			player.setInJail(true);
-			break;
-		case 1:
-			//go to go
-			GameState.addDiagWindow("Community Chest","Advance to Go.",Color.YELLOW);
-			//waitForClose(card);
-			player.setPosition(0);
-			player.addCash(200);
-			break;
-		case 2:
-			//Pay 150
-			GameState.addDiagWindow("Community Chest","Pay school tax of $150.",Color.YELLOW);
-			//waitForClose(card);
-			charge(player,150);
-			break;
-		case 3:
-			//TODO property repairs: 40, 115
-			GameState.addDiagWindow("Community Chest","You are assessed for street repairs: $40 per house, $115 per hotel.",Color.YELLOW);
-			//waitForClose(card);
-			charge(player,40*player.getHouseCount() + 115*player.getHotelCount());
-			break;
-		case 4:
-			//Get out of Jail
-			GameState.addDiagWindow("Community Chest","Get out of jail free!",Color.YELLOW);
-			//waitForClose(card);
-			player.incrementJailFreeCards();
-			break;
-		case 5:
-			//get 100
-			GameState.addDiagWindow("Community Chest","You inherit $100.",Color.YELLOW);
-			//waitForClose(card);
-			player.addCash(100);
-			break;
-		case 6:
-			//Also get 100
-			GameState.addDiagWindow("Community Chest","Xmas fund matures, collect $100.",Color.YELLOW);
-			//waitForClose(card);
-			player.addCash(100);
-			break;
-		case 7:
-			//get 45
-			GameState.addDiagWindow("Community Chest","From sale of stock, recieve $45",Color.YELLOW);
-			//waitForClose(card);
-			player.addCash(45);
-			break;
-		case 8:
-			//get25
-			GameState.addDiagWindow("Community Chest","Recieve for services $25.",Color.YELLOW);
-			//waitForClose(card);
-			player.addCash(25);
-			break;
-		case 9:
-			//get10
-			GameState.addDiagWindow("Community Chest","You have won second prize in a beauty contest, collect $10.",Color.YELLOW);
-			//waitForClose(card);
-			player.addCash(10);
-			break;
-		case 10:
-			//get 100
-			GameState.addDiagWindow("Community Chest","Life insurance matures, collect $100.",Color.YELLOW);
-			//waitForClose(card);
-			player.addCash(100);
-			break;
-		case 11:
-			//get 20
-			GameState.addDiagWindow("Community Chest","Income tax refund; collect $20.",Color.YELLOW);
-			//waitForClose(card);
-			player.addCash(20);
-			break;
-		case 12:
-			//pay 50
-			GameState.addDiagWindow("Community Chest","Doctor's fee, pay $50.",Color.YELLOW);
-			//waitForClose(card);
-			charge(player,50);
-			break;
-		case 13:
-			//pay 100
-			GameState.addDiagWindow("Community Chest","Pay hospital $100",Color.YELLOW);
-			//waitForClose(card);
-			charge(player,100);
-			break;
-		case 14:
-			//collect 200
-			GameState.addDiagWindow("Community Chest","Bank error in your favor, collect $200.",Color.YELLOW);
-			//waitForClose(card);
-			player.addCash(200);
-			break;
-		case 15:
-			//collect 50 each
-			GameState.addDiagWindow("Community Chest","Grand Opera Opening, collect $50 from each player.",Color.YELLOW);
-			//waitForClose(card);
-			for (int i = 0; i < players.size(); i++){
-				if (players.get(i) != player && ! players.get(i).getBankrupt()){
-					/////////////////////////////////////////////////////////////////players.get(i).charge(50, player);
-					charge(players.get(i),50,player);
-				}
-			}
-		}
-	}
+    public void drawChest(Player player){
+        Random randInt = new Random();
+        switch (randInt.nextInt(COMMUNITY_CHEST_CARD_COUNT + 1)){
+            case 0:
+                //Go to Jail
+                new DialogWindow("Community Chest","Go directly to Jail. Do not pass go, do not collect $200.",Color.YELLOW);
+                //waitForClose(card);
+                player.setPosition(10);
+                player.setInJail(true);
+                break;
+            case 1:
+                //go to go
+                new DialogWindow("Community Chest","Advance to Go.",Color.YELLOW);
+                //waitForClose(card);
+                player.setPosition(0);
+                player.addCash(200);
+                break;
+            case 2:
+                //Pay 150
+                new DialogWindow("Community Chest","Pay school tax of $150.",Color.YELLOW);
+                //waitForClose(card);
+                charge(player,150);
+                break;
+            case 3:
+                //TODO property repairs: 40, 115
+                new DialogWindow("Community Chest","You are assessed for street repairs: $40 per house, $115 per hotel.",Color.YELLOW);
+                //waitForClose(card);
+                charge(player,40*player.getHouseCount() + 115*player.getHotelCount());
+                break;
+            case 4:
+                //Get out of Jail
+                new DialogWindow("Community Chest","Get out of jail free!",Color.YELLOW);
+                //waitForClose(card);
+                player.incrementJailFreeCards();
+                break;
+            case 5:
+                //get 100
+                new DialogWindow("Community Chest","You inherit $100.",Color.YELLOW);
+                //waitForClose(card);
+                player.addCash(100);
+                break;
+            case 6:
+                //Also get 100
+                new DialogWindow("Community Chest","Xmas fund matures, collect $100.",Color.YELLOW);
+                //waitForClose(card);
+                player.addCash(100);
+                break;
+            case 7:
+                //get 45
+                new DialogWindow("Community Chest","From sale of stock, recieve $45",Color.YELLOW);
+                //waitForClose(card);
+                player.addCash(45);
+                break;
+            case 8:
+                //get25
+                new DialogWindow("Community Chest","Recieve for services $25.",Color.YELLOW);
+                //waitForClose(card);
+                player.addCash(25);
+                break;
+            case 9:
+                //get10
+                new DialogWindow("Community Chest","You have won second prize in a beauty contest, collect $10.",Color.YELLOW);
+                //waitForClose(card);
+                player.addCash(10);
+                break;
+            case 10:
+                //get 100
+                new DialogWindow("Community Chest","Life insurance matures, collect $100.",Color.YELLOW);
+                //waitForClose(card);
+                player.addCash(100);
+                break;
+            case 11:
+                //get 20
+                new DialogWindow("Community Chest","Income tax refund; collect $20.",Color.YELLOW);
+                //waitForClose(card);
+                player.addCash(20);
+                break;
+            case 12:
+                //pay 50
+                new DialogWindow("Community Chest","Doctor's fee, pay $50.",Color.YELLOW);
+                //waitForClose(card);
+                charge(player,50);
+                break;
+            case 13:
+                //pay 100
+                new DialogWindow("Community Chest","Pay hospital $100",Color.YELLOW);
+                //waitForClose(card);
+                charge(player,100);
+                break;
+            case 14:
+                //collect 200
+                new DialogWindow("Community Chest","Bank error in your favor, collect $200.",Color.YELLOW);
+                //waitForClose(card);
+                player.addCash(200);
+                break;
+            case 15:
+                //collect 50 each
+                new DialogWindow("Community Chest","Grand Opera Opening, collect $50 from each player.",Color.YELLOW);
+                //waitForClose(card);
+                for (int i = 0; i < players.size(); i++){
+                    if (players.get(i) != player && ! players.get(i).getBankrupt()){
+                        /////////////////////////////////////////////////////////////////players.get(i).charge(50, player);
+                        charge(players.get(i),50,player);
+                    }
+                }
+        }
+    }
 
 
-	/**
+   /**
 
     //This function keeps further code from executing until the window is closed
     private void waitForClose(JDialog window){
@@ -1221,559 +1228,559 @@ public class Board{
         window.dispose();
     }
 
-	 **/
-
-	/////////////////////
-	//GUI POPUPS
-	/////////////////////
-	private class BuyPropertyWindow implements ActionListener{
-		JFrame frame;
-		JPanel panel;
-		JButton buyButton;
-		JButton auctionButton;
-		JLabel label;
-
-		public BuyPropertyWindow(final Player player, final Property property){
-			frame = new JFrame("Buy Property");
-			frame.setVisible(true);
-			label = new JLabel();
-			panel = new JPanel();
-			label.setText("Would you like to buy " + property.getName() + "?");
-			buyButton = new JButton("Buy!");
-			auctionButton = new JButton("Auction!");
-			buyButton.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent click){
-					clickBuy(player, property);
-					frame.setVisible(false);
-				}
-			});
-			auctionButton.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent click){
-					//start auctioning
-					auction(player,property);
-
-				}
-			});
-			buyButton.setBounds(10,10,40,40);
-			auctionButton.setBounds(60, 10, 40, 40);
-			panel.add(buyButton);
-			panel.add(auctionButton);
-			panel.add(label);
-			panel.revalidate();
-			panel.repaint();
-			frame.add(panel);
-			frame.pack();
-			frame.revalidate();
-			frame.repaint();
-			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-			frame.setResizable(false);
-			frame.setBounds(600, 600, 300, 100);
-			frame.setVisible(true);
-			frame.revalidate();
-			frame.repaint();
-		}
-
-		public void actionPerformed(ActionEvent click){
-			frame.setVisible(false);
-		}
-		private void clickBuy(Player player, Property property){
-			System.out.println("You bought it!");
-			buyProperty(player, property);	//****************************************WAS CHARGE
-		}
-		private void auction(Player firstBidder, Property property){
-			System.out.println("up for auction");
-			new AuctionWindow(firstBidder, property);
-			buyButton.setEnabled(false);
-			auctionButton.setEnabled(false);
-			//waitForClose((JDialog)window);
-			frame.setVisible(false);
-		}
-	}
-
-	//The menu for auctioning properties!
-	private class AuctionWindow extends JDialog implements ActionListener{
-		JLabel label;
-		JPanel panel;
-		JButton fold;
-		JButton bid20;
-		JButton bid50;
-		JButton bid100;
-		JButton bid200;
-		JButton bid300;
-		JButton bid500;
-		int currentBid;
-		Player currentBidder;
-		int playersIn;
-		Property prize;
-		public void actionPerformed(ActionEvent click){
-			//do nothing yet.
-		}
-		public AuctionWindow(Player firstBidder, Property property){
-			panel = new JPanel();
-			label = new JLabel();
-			fold = new JButton("fold");
-			bid20 = new JButton("$20");
-			bid50 = new JButton("$50");
-			bid100 = new JButton("$100");
-			bid200 = new JButton("$200");
-			bid300 = new JButton("$300");
-			bid500 = new JButton("$500");
-			currentBid = 0;
-			currentBidder = firstBidder;
-			playersIn = 0;
-			prize = property;
-			this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-			for (int i = 0; i < players.size(); i++){
-				players.get(i).setFolded(false);
-				if (!players.get(i).getBankrupt()){
-					playersIn ++;
-				}
-			}
-
-			fold.addActionListener(new ActionListener (){
-				public void actionPerformed(ActionEvent click){
-					currentBidder.setFolded(true);
-					playersIn --;
-					step(0);
-				}
-			});
-
-			bid20.addActionListener(new ActionListener (){
-				public void actionPerformed(ActionEvent click){
-					step(20);
-				}
-			});
-
-			bid50.addActionListener(new ActionListener (){
-				public void actionPerformed(ActionEvent click){
-					step(50);
-				}
-			});
-
-			bid100.addActionListener(new ActionListener (){
-				public void actionPerformed(ActionEvent click){
-					step(100);
-				}
-			});
-
-			bid200.addActionListener(new ActionListener (){
-				public void actionPerformed(ActionEvent click){
-					step(200);
-				}
-			});
-
-			bid300.addActionListener(new ActionListener (){
-				public void actionPerformed(ActionEvent click){
-					step(300);
-				}
-			});
-
-			bid500.addActionListener(new ActionListener (){
-				public void actionPerformed(ActionEvent click){
-					step(500);
-				}
-			});
-
-
-			label.setText(currentBidder.getName() + ", raise or fold. /nCurrent Bid: $" + currentBid + "/nBidding for: " + property.getName());
-
-			panel.add(label);
-			panel.add(fold);
-			panel.add(bid20);
-			panel.add(bid50);
-			panel.add(bid100);
-			panel.add(bid200);
-			panel.add(bid300);
-			panel.add(bid500);
-			add(panel);
-			setBounds(600, 600, 400, 400);
-			pack();
-			setVisible(true);
-
-
-		}
-
-		private void step(int incBid){
-
-			//Steps to the next player in the auction process
-			//and increments the bid
-
-			//Finds the next player in players[] still in the auction
-			if (playersIn == 1) {
-				Player winner = getWinner();
-				GameState.addDiagWindow("Auction Complete",winner.getName() + " has won the auction! They must now pay $" +
-						currentBid + " for " + prize.getName() + ".");
-				//waitForClose(card);
-				charge(winner,currentBid);
-				if (!(winner.getBankrupt())){
-					prize.setOwner(winner);
-				}
-				this.setVisible(false);
-				return;
-			}
-
-			Player nextBidder = null;
-			for (int i = 0; i < players.size(); i ++){
-				if (players.get(i) == currentBidder){
-					for (int j = (i + 1) % players.size();j  != i; j = (j+1)%players.size()){
-						if (!(players.get(j).getFolded() || players.get(j).getBankrupt())){
-							nextBidder = players.get(j);
-						}
-					}
-					//this statement should NEVER be true.
-					if (nextBidder == null){
-						System.out.println("ERROR: GHOST BIDDERS!");
-						break;
-					}
-					//no need to continue this loop past currentBidder
-					break;
-				}
-
-			}
-			//If there's only one bidder remaining, sell the property.
-
-			//no need for an else statement here.
-			currentBidder = nextBidder;
-			currentBid += incBid;
-			label.setText(currentBidder.getName() + ", raise or fold. /nCurrent Bid: $" +
-					currentBid + "/nBidding for: " + prize.getName());
-
-		}
-
-		private Player getWinner(){
-			//returns the first player who has not folded or gone bankrupt.
-			//Should not be called until 1 player remaining
-			for (int i = 0; i < players.size(); i++){
-				if (!(players.get(i).getFolded() || players.get(i).getBankrupt())){
-					return players.get(i);
-				}
-			}
-			return null;
-		}
-
-	}
-
-	public void initiateTrade(Player player){
-		new TradeWithWindow(player);
-	}
-
-	//////////////////////////////////////////////
-	///////////TRADING WINDOWS!!!!!!!!
-
-	//////////////////////////////////////////////
-	public class TradeWithWindow extends JDialog{
-		JPanel panel;
-		JLabel label;
-		JButton[] buttons;
-		//Actually a "done" button, too late to change the name.
-		JButton nevermind;
-
-		//These are needed for a constant
-
-		//creates a window with buttons
-		//with the names of other players on them
-		//to select trading partner
-		public TradeWithWindow (final Player trader){
-			panel = new JPanel();
-			label = new JLabel("Select who you would " +
-					"like to trade with.");
-			//max number of players
-			buttons = new JButton[4];
-			nevermind = new JButton("done");
-			//Hopefully bigger than the
-			setBounds(300, 300, 400, 400);
-			panel.add(label);
-
-
-			////Couldn't put these in a for loop because something about final variables: redundancy ahead
-			if (players.size() > 3){
-				if (players.get(3) != trader && !players.get(3).getBankrupt()){
-					buttons[3] = new JButton(players.get(3).getName());
-					buttons[3].addActionListener(new ActionListener(){
-						public void actionPerformed(ActionEvent click){
-							new TradeWindow(trader, players.get(3));
-						}
-					});
-					panel.add(buttons[3]);
-				}
-			}
-
-			if (players.size() > 2){
-				if (players.get(2) != trader && !players.get(2).getBankrupt()){
-					buttons[2] = new JButton(players.get(2).getName());
-					buttons[2].addActionListener(new ActionListener(){
-						public void actionPerformed(ActionEvent click){
-							new TradeWindow(trader, players.get(2));
-						}
-					});
-					panel.add(buttons[2]);
-				}
-			}
-
-			if (players.size() > 1){
-				if (players.get(1) != trader && !players.get(1).getBankrupt()){
-					buttons[1] = new JButton(players.get(1).getName());
-					buttons[1].addActionListener(new ActionListener(){
-						public void actionPerformed(ActionEvent click){
-							new TradeWindow(trader, players.get(1));
-						}
-					});
-					panel.add(buttons[1]);
-				}
-			}
-
-			if (players.size() > 0){
-				if (players.get(0) != trader && !players.get(0).getBankrupt()){
-					buttons[0] = new JButton(players.get(0).getName());
-					buttons[0].addActionListener(new ActionListener(){
-						public void actionPerformed(ActionEvent click){
-							new TradeWindow(trader, players.get(0));
-						}
-					});
-					panel.add(buttons[0]);
-				}
-			}
-
-			nevermind.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent click){
-					dispose();
-				}
-			});
-
-			panel.add(nevermind);
-			add(panel);
-			pack();
-			setVisible(true);
-		}
-	}
-
-
-
-
-	private class TradeWindow extends JDialog{
-		JPanel panel;
-		JPanel offerPanel;
-		JLabel offerLabel;
-
-
-		JSlider moneyOffered;
-		JLabel moneyOfferedLabel;
-		JSlider outOfJailOffered;
-		JCheckBox[] propertyOffered;
-
-
-		JPanel requestPanel;
-		JLabel requestLabel;
-
-		JSlider moneyRequested;
-		JLabel moneyRequestedLabel;
-		JSlider outOfJailRequested;
-		JCheckBox[] propertyRequested;
-
-
-		JPanel confirmationPanel;
-
-		JButton sendRequest;
-		JButton accept;
-		JButton decline;
-
-
-		Property[] propertyList;
-
-		final int PROPERTY_COUNT = 28;
-
-		TradeWindow(final Player offerer, final Player decider){
-			this.setTitle(offerer.getName() + ": MAKE YOUR OFFER!");
-			setBounds(300, 300, 600, 600);
-			panel = new JPanel();
-			//Window contains 3 panels, the WEST panel is the offerer's assets:
-			//2 sliders which will allow them to indicate how much money
-			//and how many out of jail cards they would like to offer
-			//and a chackbox for every property they own.
-			//an EAST panel, which contains all the same, except those of
-			//the player they're trading with, and a third panel with 3 buttons.
-			//one for offerer to send the trade request, and 2 for decider to decide.
-			//accept/decline must be disabled for offerer's turn.
-			//all other input must be disabled for decider.
-			offerPanel = new JPanel();
-			offerLabel = new JLabel("Your assets");
-			offerPanel.add(offerLabel);
-			requestPanel = new JPanel();
-			requestLabel = new JLabel("Their Assets");
-			requestPanel.add(requestLabel);
-			moneyOfferedLabel = new JLabel("Offer cash: $0");
-			if (offerer.getCash() > 0){
-				moneyOffered = new JSlider(0, offerer.getCash(), 0);
-				moneyOffered.addChangeListener(new ChangeListener(){
-					public void stateChanged (ChangeEvent slide){
-						moneyOfferedLabel.setText("Offer cash: $" + moneyOffered.getValue());
-					}
-				});
-			} else {
-				moneyOffered = new JSlider(0, 1, 0);
-				moneyOffered.setEnabled(false);
-			}
-			offerPanel.add(moneyOffered);
-
-			moneyRequested = new JSlider(0, offerer.getCash(), 0);
-			moneyRequestedLabel = new JLabel("Request Cash: $0");
-
-			if (decider.getCash() > 0){
-				moneyRequested = new JSlider(0, offerer.getCash(), 0);
-				moneyRequested.addChangeListener(new ChangeListener(){
-					public void stateChanged (ChangeEvent slide){
-						moneyRequestedLabel.setText("Request cash: $" + moneyOffered.getValue());
-					}
-				});
-			} else {
-				moneyRequested = new JSlider(0, 1, 0);
-				moneyRequested.setEnabled(false);
-			}
-
-
-			if (offerer.getJailFreeCards() > 0){
-				outOfJailOffered = new JSlider(0, offerer.getJailFreeCards(), 0);
-				outOfJailOffered.setMajorTickSpacing(1);
-				outOfJailOffered.setPaintTicks(true);
-				outOfJailOffered.setPaintLabels(true);
-			} else{
-				outOfJailOffered = new JSlider(0, 1, 0);
-				outOfJailOffered.setEnabled(false);
-			}
-			offerPanel.add(outOfJailOffered);
-
-
-			if (decider.getJailFreeCards() > 0){
-				outOfJailRequested = new JSlider(0, offerer.getJailFreeCards(), 0);
-				outOfJailRequested.setMajorTickSpacing(1);
-				outOfJailRequested.setPaintTicks(true);
-				outOfJailRequested.setPaintLabels(true);
-			} else{
-				outOfJailRequested = new JSlider(0, 1, 0);
-				outOfJailRequested.setEnabled(false);
-			}
-			requestPanel.add(outOfJailRequested);
-
-
-			//This array should be accessible to the whole class, but no time.
-
-			propertyList = new Property[PROPERTY_COUNT];
-			int propertiesAdded = 0;
-			for (int i = 0; i < spaces.length; i ++){
-				if (spaces[i].getType().equals("Utility")||
-						spaces[i].getType().equals("Railroad")||
-						spaces[i].getType().equals("Lot")){
-					propertyList[propertiesAdded] = (Property)spaces[i];
-					propertiesAdded ++;
-				}
-
-			}
-
-
-
-			propertyOffered = new JCheckBox[PROPERTY_COUNT];
-			propertyRequested = new JCheckBox[PROPERTY_COUNT];
-
-
-			//This Loop fills out the array and adds the proper checkboxes
-			for (int i = 0; i < PROPERTY_COUNT; i++){
-
-
-				propertyOffered[i] = new JCheckBox(propertyList[i].getName());
-				propertyOffered[i].setSelected(false);
-
-				propertyRequested[i] = new JCheckBox(propertyList[i].getName());
-				propertyRequested[i].setSelected(false);
-
-				if (propertyList[i].getOwner() == offerer){
-					offerPanel.add(propertyOffered[i]);
-					//Cannot sell improved property
-					if (propertyList[i].getType().equals("Lot")){
-						if (((Lot)propertyList[i]).getHouses() > 0){
-							propertyOffered[i].setEnabled(false);
-						}
-					}
-				} else if (propertyList[i].getOwner() == decider){
-					requestPanel.add(propertyRequested[i]);
-					//Cannot request improved property
-					if (propertyList[i].getType().equals("Lot")){
-						if (((Lot)propertyList[i]).getHouses() > 0){
-							propertyRequested[i].setEnabled(false);
-						}
-					}
-				}
-
-			}
-
-			sendRequest = new JButton("Send Offer");
-			sendRequest.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent click){
-					moneyOffered.setEnabled(false);
-					moneyRequested.setEnabled(false);
-					outOfJailOffered.setEnabled(false);
-					outOfJailRequested.setEnabled(false);
-
-					for (int i = 0; i < PROPERTY_COUNT; i ++){
-						propertyOffered[i].setEnabled(false);
-						propertyRequested[i].setEnabled(false);
-					}
-					sendRequest.setEnabled(false);
-					accept.setEnabled(true);
-					decline.setEnabled(true);
-					setTitle(decider.getName() + ", DO YOU ACCEPT?");
-				}
-			});
-
-			accept = new JButton("Accept");
-			decline = new JButton("Decline");
-
-			//do the trade
-			accept.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent click){
-					offerer.addCash(moneyRequested.getValue());
-					charge(decider, moneyRequested.getValue());
-					offerer.setJailFreeCards(offerer.getJailFreeCards() + outOfJailRequested.getValue());
-					decider.setJailFreeCards(decider.getJailFreeCards() - outOfJailRequested.getValue());
-
-					decider.addCash(moneyOffered.getValue());
-					charge(offerer, moneyOffered.getValue());
-					decider.setJailFreeCards(offerer.getJailFreeCards() + outOfJailOffered.getValue());
-					offerer.setJailFreeCards(decider.getJailFreeCards() - outOfJailOffered.getValue());
-
-					for (int i = 0; i < PROPERTY_COUNT; i++){
-						if (propertyOffered[i].isSelected()){
-							propertyList[i].setOwner(decider);
-						} else if (propertyRequested[i].isSelected()){
-							propertyList[i].setOwner(offerer);
-						}
-					}
-					dispose();
-				}
-			});
-
-			decline.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent click){
-					dispose();
-				}
-			});
-
-
-			accept.setEnabled(false);
-			decline.setEnabled(false);
-
-			confirmationPanel.add(sendRequest);
-			confirmationPanel.add(accept);
-			confirmationPanel.add(decline);
-
-			confirmationPanel.add(sendRequest);
-			panel.add(offerPanel, BorderLayout.WEST);
-			panel.add(requestPanel, BorderLayout.EAST);
-			panel.add(confirmationPanel, BorderLayout.SOUTH);
-			add(panel);
-			pack();
-			setVisible(true);
-
-		}
-	}
+    **/
+
+    /////////////////////
+    //GUI POPUPS
+    /////////////////////
+    private class BuyPropertyWindow implements ActionListener{
+    	JFrame frame;
+        JPanel panel;
+        JButton buyButton;
+        JButton auctionButton;
+        JLabel label;
+
+        public BuyPropertyWindow(final Player player, final Property property){
+        	frame = new JFrame("Buy Property");
+        	frame.setVisible(true);
+            label = new JLabel();
+            panel = new JPanel();
+            label.setText("Would you like to buy " + property.getName() + "?");
+            buyButton = new JButton("Buy!");
+            auctionButton = new JButton("Auction!");
+            buyButton.addActionListener(new ActionListener(){
+                public void actionPerformed(ActionEvent click){
+                    clickBuy(player, property);
+                    frame.setVisible(false);
+                }
+            });
+            auctionButton.addActionListener(new ActionListener(){
+                public void actionPerformed(ActionEvent click){
+                    //start auctioning
+                    auction(player,property);
+
+                }
+            });
+            buyButton.setBounds(10,10,40,40);
+            auctionButton.setBounds(60, 10, 40, 40);
+            panel.add(buyButton);
+            panel.add(auctionButton);
+            panel.add(label);
+            panel.revalidate();
+            panel.repaint();
+            frame.add(panel);
+            frame.pack();
+            frame.revalidate();
+            frame.repaint();
+            frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            frame.setResizable(false);
+            frame.setBounds(600, 600, 300, 100);
+            frame.setVisible(true);
+            frame.revalidate();
+            frame.repaint();
+        }
+
+        public void actionPerformed(ActionEvent click){
+            frame.setVisible(false);
+        }
+        private void clickBuy(Player player, Property property){
+            System.out.println("You bought it!");
+            buyProperty(player, property);	//****************************************WAS CHARGE
+        }
+        private void auction(Player firstBidder, Property property){
+            System.out.println("up for auction");
+            new AuctionWindow(firstBidder, property);
+            buyButton.setEnabled(false);
+            auctionButton.setEnabled(false);
+            //waitForClose((JDialog)window);
+            frame.setVisible(false);
+        }
+    }
+
+    //The menu for auctioning properties!
+    private class AuctionWindow extends JDialog implements ActionListener{
+        JLabel label;
+        JPanel panel;
+        JButton fold;
+        JButton bid20;
+        JButton bid50;
+        JButton bid100;
+        JButton bid200;
+        JButton bid300;
+        JButton bid500;
+        int currentBid;
+        Player currentBidder;
+        int playersIn;
+        Property prize;
+        public void actionPerformed(ActionEvent click){
+            //do nothing yet.
+        }
+        public AuctionWindow(Player firstBidder, Property property){
+            panel = new JPanel();
+            label = new JLabel();
+            fold = new JButton("fold");
+            bid20 = new JButton("$20");
+            bid50 = new JButton("$50");
+            bid100 = new JButton("$100");
+            bid200 = new JButton("$200");
+            bid300 = new JButton("$300");
+            bid500 = new JButton("$500");
+            currentBid = 0;
+            currentBidder = firstBidder;
+            playersIn = 0;
+            prize = property;
+            this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+            for (int i = 0; i < players.size(); i++){
+                players.get(i).setFolded(false);
+                if (!players.get(i).getBankrupt()){
+                    playersIn ++;
+                }
+            }
+
+            fold.addActionListener(new ActionListener (){
+                public void actionPerformed(ActionEvent click){
+                    currentBidder.setFolded(true);
+                    playersIn --;
+                    step(0);
+                }
+            });
+
+            bid20.addActionListener(new ActionListener (){
+                public void actionPerformed(ActionEvent click){
+                    step(20);
+                }
+            });
+
+            bid50.addActionListener(new ActionListener (){
+                public void actionPerformed(ActionEvent click){
+                    step(50);
+                }
+            });
+
+            bid100.addActionListener(new ActionListener (){
+                public void actionPerformed(ActionEvent click){
+                    step(100);
+                }
+            });
+
+            bid200.addActionListener(new ActionListener (){
+                public void actionPerformed(ActionEvent click){
+                    step(200);
+                }
+            });
+
+            bid300.addActionListener(new ActionListener (){
+                public void actionPerformed(ActionEvent click){
+                    step(300);
+                }
+            });
+
+            bid500.addActionListener(new ActionListener (){
+                public void actionPerformed(ActionEvent click){
+                    step(500);
+                }
+            });
+
+
+            label.setText(currentBidder.getName() + ", raise or fold. /nCurrent Bid: $" + currentBid + "/nBidding for: " + property.getName());
+
+            panel.add(label);
+            panel.add(fold);
+            panel.add(bid20);
+            panel.add(bid50);
+            panel.add(bid100);
+            panel.add(bid200);
+            panel.add(bid300);
+            panel.add(bid500);
+            add(panel);
+            setBounds(600, 600, 400, 400);
+            pack();
+            setVisible(true);
+
+
+        }
+
+        private void step(int incBid){
+
+            //Steps to the next player in the auction process
+            //and increments the bid
+
+            //Finds the next player in players[] still in the auction
+            if (playersIn == 1) {
+                Player winner = getWinner();
+                new DialogWindow("Auction Complete",winner.getName() + " has won the auction! They must now pay $" +
+                        currentBid + " for " + prize.getName() + ".");
+                //waitForClose(card);
+                charge(winner,currentBid);
+                if (!(winner.getBankrupt())){
+                    prize.setOwner(winner);
+                }
+                this.setVisible(false);
+                return;
+            }
+
+            Player nextBidder = null;
+            for (int i = 0; i < players.size(); i ++){
+                if (players.get(i) == currentBidder){
+                    for (int j = (i + 1) % players.size();j  != i; j = (j+1)%players.size()){
+                        if (!(players.get(j).getFolded() || players.get(j).getBankrupt())){
+                            nextBidder = players.get(j);
+                        }
+                    }
+                    //this statement should NEVER be true.
+                    if (nextBidder == null){
+                        System.out.println("ERROR: GHOST BIDDERS!");
+                        break;
+                    }
+                    //no need to continue this loop past currentBidder
+                    break;
+                }
+
+            }
+            //If there's only one bidder remaining, sell the property.
+
+            //no need for an else statement here.
+            currentBidder = nextBidder;
+            currentBid += incBid;
+            label.setText(currentBidder.getName() + ", raise or fold. /nCurrent Bid: $" +
+                    currentBid + "/nBidding for: " + prize.getName());
+
+        }
+
+        private Player getWinner(){
+            //returns the first player who has not folded or gone bankrupt.
+            //Should not be called until 1 player remaining
+            for (int i = 0; i < players.size(); i++){
+                if (!(players.get(i).getFolded() || players.get(i).getBankrupt())){
+                    return players.get(i);
+                }
+            }
+            return null;
+        }
+
+    }
+
+    public void initiateTrade(Player player){
+    	new TradeWithWindow(player);
+    }
+
+//////////////////////////////////////////////
+///////////TRADING WINDOWS!!!!!!!!
+
+//////////////////////////////////////////////
+    public class TradeWithWindow extends JDialog{
+    	JPanel panel;
+    	JLabel label;
+    	JButton[] buttons;
+    	//Actually a "done" button, too late to change the name.
+    	JButton nevermind;
+
+    	//These are needed for a constant
+
+    	//creates a window with buttons
+    	//with the names of other players on them
+    	//to select trading partner
+    	public TradeWithWindow (final Player trader){
+    		panel = new JPanel();
+    		label = new JLabel("Select who you would " +
+    				"like to trade with.");
+    		//max number of players
+    		buttons = new JButton[4];
+    		nevermind = new JButton("done");
+    		//Hopefully bigger than the
+    		setBounds(300, 300, 400, 400);
+    		panel.add(label);
+
+
+    		////Couldn't put these in a for loop because something about final variables: redundancy ahead
+    		if (players.size() > 3){
+    			if (players.get(3) != trader && !players.get(3).getBankrupt()){
+    				buttons[3] = new JButton(players.get(3).getName());
+    				buttons[3].addActionListener(new ActionListener(){
+    					public void actionPerformed(ActionEvent click){
+    						new TradeWindow(trader, players.get(3));
+    					}
+    				});
+    				panel.add(buttons[3]);
+    			}
+    		}
+
+    		if (players.size() > 2){
+    			if (players.get(2) != trader && !players.get(2).getBankrupt()){
+    				buttons[2] = new JButton(players.get(2).getName());
+    				buttons[2].addActionListener(new ActionListener(){
+    					public void actionPerformed(ActionEvent click){
+    						new TradeWindow(trader, players.get(2));
+    					}
+    				});
+    				panel.add(buttons[2]);
+    			}
+    		}
+
+    		if (players.size() > 1){
+    			if (players.get(1) != trader && !players.get(1).getBankrupt()){
+    				buttons[1] = new JButton(players.get(1).getName());
+    				buttons[1].addActionListener(new ActionListener(){
+    					public void actionPerformed(ActionEvent click){
+    						new TradeWindow(trader, players.get(1));
+    					}
+    				});
+    				panel.add(buttons[1]);
+    			}
+    		}
+
+    		if (players.size() > 0){
+    			if (players.get(0) != trader && !players.get(0).getBankrupt()){
+    				buttons[0] = new JButton(players.get(0).getName());
+    				buttons[0].addActionListener(new ActionListener(){
+    					public void actionPerformed(ActionEvent click){
+    						new TradeWindow(trader, players.get(0));
+    					}
+    				});
+    				panel.add(buttons[0]);
+    			}
+    		}
+
+    		nevermind.addActionListener(new ActionListener(){
+    			public void actionPerformed(ActionEvent click){
+    				dispose();
+    			}
+    		});
+
+    		panel.add(nevermind);
+    		add(panel);
+    		pack();
+    		setVisible(true);
+    	}
+    }
+
+
+
+
+    private class TradeWindow extends JDialog{
+    	JPanel panel;
+    	JPanel offerPanel;
+    	JLabel offerLabel;
+
+
+    	JSlider moneyOffered;
+    	JLabel moneyOfferedLabel;
+    	JSlider outOfJailOffered;
+    	JCheckBox[] propertyOffered;
+
+
+    	JPanel requestPanel;
+    	JLabel requestLabel;
+
+    	JSlider moneyRequested;
+    	JLabel moneyRequestedLabel;
+    	JSlider outOfJailRequested;
+    	JCheckBox[] propertyRequested;
+
+
+    	JPanel confirmationPanel;
+
+    	JButton sendRequest;
+    	JButton accept;
+    	JButton decline;
+
+
+    	Property[] propertyList;
+
+    	final int PROPERTY_COUNT = 28;
+
+    	TradeWindow(final Player offerer, final Player decider){
+    		this.setTitle(offerer.getName() + ": MAKE YOUR OFFER!");
+    		setBounds(300, 300, 600, 600);
+    		panel = new JPanel();
+    		//Window contains 3 panels, the WEST panel is the offerer's assets:
+    		//2 sliders which will allow them to indicate how much money
+    		//and how many out of jail cards they would like to offer
+    		//and a chackbox for every property they own.
+    		//an EAST panel, which contains all the same, except those of
+    		//the player they're trading with, and a third panel with 3 buttons.
+    		//one for offerer to send the trade request, and 2 for decider to decide.
+    		//accept/decline must be disabled for offerer's turn.
+    		//all other input must be disabled for decider.
+    		offerPanel = new JPanel();
+    		offerLabel = new JLabel("Your assets");
+    		offerPanel.add(offerLabel);
+    		requestPanel = new JPanel();
+    		requestLabel = new JLabel("Their Assets");
+    		requestPanel.add(requestLabel);
+    		moneyOfferedLabel = new JLabel("Offer cash: $0");
+    		if (offerer.getCash() > 0){
+    			moneyOffered = new JSlider(0, offerer.getCash(), 0);
+    			moneyOffered.addChangeListener(new ChangeListener(){
+    				public void stateChanged (ChangeEvent slide){
+    					moneyOfferedLabel.setText("Offer cash: $" + moneyOffered.getValue());
+    				}
+    			});
+    		} else {
+    			moneyOffered = new JSlider(0, 1, 0);
+    			moneyOffered.setEnabled(false);
+    		}
+    		offerPanel.add(moneyOffered);
+
+    		moneyRequested = new JSlider(0, offerer.getCash(), 0);
+    		moneyRequestedLabel = new JLabel("Request Cash: $0");
+
+    		if (decider.getCash() > 0){
+    			moneyRequested = new JSlider(0, offerer.getCash(), 0);
+    			moneyRequested.addChangeListener(new ChangeListener(){
+    				public void stateChanged (ChangeEvent slide){
+    					moneyRequestedLabel.setText("Request cash: $" + moneyOffered.getValue());
+    				}
+    			});
+    		} else {
+    			moneyRequested = new JSlider(0, 1, 0);
+    			moneyRequested.setEnabled(false);
+    		}
+
+
+    		if (offerer.getJailFreeCards() > 0){
+    			outOfJailOffered = new JSlider(0, offerer.getJailFreeCards(), 0);
+    			outOfJailOffered.setMajorTickSpacing(1);
+    			outOfJailOffered.setPaintTicks(true);
+    			outOfJailOffered.setPaintLabels(true);
+    		} else{
+    			outOfJailOffered = new JSlider(0, 1, 0);
+    			outOfJailOffered.setEnabled(false);
+    		}
+    		offerPanel.add(outOfJailOffered);
+
+
+    		if (decider.getJailFreeCards() > 0){
+    			outOfJailRequested = new JSlider(0, offerer.getJailFreeCards(), 0);
+    			outOfJailRequested.setMajorTickSpacing(1);
+    			outOfJailRequested.setPaintTicks(true);
+    			outOfJailRequested.setPaintLabels(true);
+    		} else{
+    			outOfJailRequested = new JSlider(0, 1, 0);
+    			outOfJailRequested.setEnabled(false);
+    		}
+    		requestPanel.add(outOfJailRequested);
+
+
+    		//This array should be accessible to the whole class, but no time.
+
+    		propertyList = new Property[PROPERTY_COUNT];
+    		int propertiesAdded = 0;
+    		for (int i = 0; i < spaces.length; i ++){
+    			if (spaces[i].getType().equals("Utility")||
+    					spaces[i].getType().equals("Railroad")||
+    					spaces[i].getType().equals("Lot")){
+    				propertyList[propertiesAdded] = (Property)spaces[i];
+    				propertiesAdded ++;
+    			}
+
+    		}
+
+
+
+    		propertyOffered = new JCheckBox[PROPERTY_COUNT];
+    		propertyRequested = new JCheckBox[PROPERTY_COUNT];
+
+
+    		//This Loop fills out the array and adds the proper checkboxes
+    		for (int i = 0; i < PROPERTY_COUNT; i++){
+
+
+    			propertyOffered[i] = new JCheckBox(propertyList[i].getName());
+    			propertyOffered[i].setSelected(false);
+
+    			propertyRequested[i] = new JCheckBox(propertyList[i].getName());
+    			propertyRequested[i].setSelected(false);
+
+    			if (propertyList[i].getOwner() == offerer){
+    				offerPanel.add(propertyOffered[i]);
+    				//Cannot sell improved property
+    				if (propertyList[i].getType().equals("Lot")){
+    					if (((Lot)propertyList[i]).getHouses() > 0){
+    						propertyOffered[i].setEnabled(false);
+    					}
+    				}
+    			} else if (propertyList[i].getOwner() == decider){
+    				requestPanel.add(propertyRequested[i]);
+    				//Cannot request improved property
+    				if (propertyList[i].getType().equals("Lot")){
+    					if (((Lot)propertyList[i]).getHouses() > 0){
+    						propertyRequested[i].setEnabled(false);
+    					}
+    				}
+    			}
+
+    		}
+
+    		sendRequest = new JButton("Send Offer");
+    		sendRequest.addActionListener(new ActionListener(){
+    			public void actionPerformed(ActionEvent click){
+    				moneyOffered.setEnabled(false);
+    				moneyRequested.setEnabled(false);
+    				outOfJailOffered.setEnabled(false);
+    				outOfJailRequested.setEnabled(false);
+
+    				for (int i = 0; i < PROPERTY_COUNT; i ++){
+    					propertyOffered[i].setEnabled(false);
+    					propertyRequested[i].setEnabled(false);
+    				}
+    				sendRequest.setEnabled(false);
+    				accept.setEnabled(true);
+    				decline.setEnabled(true);
+    				setTitle(decider.getName() + ", DO YOU ACCEPT?");
+    			}
+    		});
+
+    		accept = new JButton("Accept");
+    		decline = new JButton("Decline");
+
+    		//do the trade
+    		accept.addActionListener(new ActionListener(){
+    			public void actionPerformed(ActionEvent click){
+    				offerer.addCash(moneyRequested.getValue());
+    				charge(decider, moneyRequested.getValue());
+    				offerer.setJailFreeCards(offerer.getJailFreeCards() + outOfJailRequested.getValue());
+    				decider.setJailFreeCards(decider.getJailFreeCards() - outOfJailRequested.getValue());
+
+    				decider.addCash(moneyOffered.getValue());
+    				charge(offerer, moneyOffered.getValue());
+    				decider.setJailFreeCards(offerer.getJailFreeCards() + outOfJailOffered.getValue());
+    				offerer.setJailFreeCards(decider.getJailFreeCards() - outOfJailOffered.getValue());
+
+    				for (int i = 0; i < PROPERTY_COUNT; i++){
+    					if (propertyOffered[i].isSelected()){
+    						propertyList[i].setOwner(decider);
+    					} else if (propertyRequested[i].isSelected()){
+    						propertyList[i].setOwner(offerer);
+    					}
+    				}
+    				dispose();
+    			}
+    		});
+
+    		decline.addActionListener(new ActionListener(){
+    			public void actionPerformed(ActionEvent click){
+    				dispose();
+    			}
+    		});
+
+
+    		accept.setEnabled(false);
+    		decline.setEnabled(false);
+
+    		confirmationPanel.add(sendRequest);
+    		confirmationPanel.add(accept);
+    		confirmationPanel.add(decline);
+
+    		confirmationPanel.add(sendRequest);
+    		panel.add(offerPanel, BorderLayout.WEST);
+    		panel.add(requestPanel, BorderLayout.EAST);
+    		panel.add(confirmationPanel, BorderLayout.SOUTH);
+    		add(panel);
+    		pack();
+    		setVisible(true);
+
+    	}
+    }
 
 }

@@ -1,20 +1,12 @@
 package monopoly.core;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Align;
 
 public class GameState extends State{
 
@@ -53,7 +45,9 @@ public class GameState extends State{
 	private Texture bootOwnedVert;
 	private Texture bootOwnedHoriz;
 	private Texture house;
-	private Texture diagwindow;
+	
+	private Texture mortageOwnedVert;
+	private Texture mortageOwnedHoriz;
 
 	private BitmapFont fontTitle;
 	private BitmapFont fontDescription;
@@ -139,9 +133,7 @@ public class GameState extends State{
 	private boolean endGame;
 
 	private SpriteBatch batch;
-	private ShapeRenderer shapeRender;
 
-	public static ArrayList<DialogWindow> diagWindows;
 	public GameState(StateManager manager, SpriteBatch batch , int numPlayers){
 		super(manager);
 
@@ -181,7 +173,9 @@ public class GameState extends State{
 		house = new Texture(Gdx.files.internal("assets/house.png"));
 		payDebtUp = new Texture(Gdx.files.internal("assets/pay_debt_up.png"));
 		payDebtDown = new Texture(Gdx.files.internal("assets/pay_debt_down.png"));
-		diagwindow = new Texture(Gdx.files.internal("assets/DiagWindow.png"));
+		
+		mortageOwnedVert = new Texture(Gdx.files.internal("assets/mortage_vert.png"));
+    mortageOwnedHoriz = new Texture(Gdx.files.internal("assets/mortage_horiz.png"));
 
 		//Defines and initializes the font generators for the game
 		FreeTypeFontGenerator fontGeneratorBH = new FreeTypeFontGenerator(Gdx.files.internal("assets/blue_highway_d.ttf"));
@@ -279,10 +273,6 @@ public class GameState extends State{
 		fontGeneratorBH.dispose();
 		fontGeneratorBH2.dispose();
 		fontGeneratorBM.dispose();
-
-		shapeRender = new ShapeRenderer();
-		diagWindows = new ArrayList<DialogWindow>();
-		addDiagWindow("Ely is awesome", "this is some freakishly long text that you might want to consider spacing");
 	}
 
 	@Override
@@ -313,7 +303,7 @@ public class GameState extends State{
 					playerRolling = false;
 				}
 
-				//If the player touched the end turn button
+			//If the player touched the end turn button
 			}else if(playerChoosing && (coords.x >= endTurnLeft && coords.x <= endTurnRight) && (coords.y >= endTurnBottom && coords.y <= endTurnTop)){
 
 				endTurnPressed = true;
@@ -322,7 +312,7 @@ public class GameState extends State{
 				if(endTurnPressed && currentPlayerInDebt){
 
 					board.getPlayers().get(currentPlayer).setBankrupt(true);
-					addDiagWindow("Bankrupt", "Player " + (currentPlayer + 1) + " is now bankrupt.",Color.WHITE);
+					new DialogWindow("Bankrupt", "Player " + (currentPlayer + 1) + " is now bankrupt.");
 					System.out.println("Player " + (currentPlayer + 1) + " is now bankrupt");
 
 					//If in debt then check for if they owe a player
@@ -340,43 +330,40 @@ public class GameState extends State{
 				nextPlayer();
 				System.out.println("Player " + currentPlayer + " is now rolling");
 
-				//If the player touched the pay debt button
+			//If the player touched the pay debt button
 			}else if(playerChoosing && (coords.x >= payDebtLeft && coords.x <= payDebtRight) && (coords.y >= payDebtBottom && coords.y <= payDebtTop)){
-
+			  
 				board.payDebt(board.getPlayers().get(currentPlayer));
 				playerChoosing = true;
 				playerRolling = false;
 				board.getPlayers().get(currentPlayer).setInDebt(false);
 
-				//If the player touched the upgrade button
+			//If the player touched the upgrade button
 			}else if(playerChoosing && playerCanUpgrade && (coords.x >= upgradeLeft && coords.x <= upgradeRight) && (coords.y >= upgradeBottom && coords.y <= upgradeTop)){
 
 				upgradePressed = true;
 				new UpgradeWindow(board.getPlayers().get(currentPlayer), board.canUpgradeList(board.getPlayers().get(currentPlayer)), board);
 
-				//If the player touched the mortgage button
+			//If the player touched the mortgage button
 			}else if(playerChoosing && playerCanMortgage && (coords.x >= mortgageLeft && coords.x <= mortgageRight) && (coords.y >= mortgageBottom && coords.y <= mortgageTop)){
 
 				mortgagePressed = true;
 				new MortgageWindow(board.getPlayers().get(currentPlayer), board.canMortgageList(board.getPlayers().get(currentPlayer)), board);
 
-				//If the player touched the trade button
+			//If the player touched the trade button
 			}else if(playerChoosing && (coords.x >= tradeLeft && coords.x <= tradeRight) && (coords.y >= tradeBottom && coords.y <= tradeTop)){
 
 				tradePressed = true;
 				board.initiateTrade(board.getPlayers().get(currentPlayer));
 
-				//If the player touched the pay bail button
+			//If the player touched the pay bail button
 			}else if(playerChoosing && currentPlayerInJail && (coords.x >= payBailLeft && coords.x <= payBailRight) && (coords.y >= payBailBottom && coords.y <= payBailTop)){
 
 				payBailPressed = true;
 				board.payJail(board.getPlayers().get(currentPlayer));
 
 			}
-			if(diagWindows.size() > 0){
-				if(Gdx.input.justTouched())
-					diagWindows.remove(0);
-			}
+
 
 		}
 
@@ -407,10 +394,7 @@ public class GameState extends State{
 	@Override
 	public void render() {
 
-		camera.update();
 		batch.setProjectionMatrix(camera.combined);
-		shapeRender.setProjectionMatrix(camera.combined);
-		//		System.out.println(diagWindows.size());
 		batch.begin();
 
 		//Draw the board background
@@ -418,6 +402,10 @@ public class GameState extends State{
 
 		//Draw colored overlays for the properties owned
 		drawOwnedProperties();
+		
+		// TODO: If player mortages property Gray out the Property else um-mortgage color property back
+		
+		drawMortageProperties();
 
 		//Draw all upgraded houses and hotels
 		drawHousesAndHotels();
@@ -514,32 +502,7 @@ public class GameState extends State{
 
 		//Draw the icons for current player's turn
 		drawIcons();
-		for(DialogWindow w : diagWindows){
-			w.update();
-		}
-		Iterator iter = diagWindows.iterator();
-		while(iter.hasNext()){
-			DialogWindow w = (DialogWindow) iter.next();
-			if(w.deltaTime > w.MAXTIME){
-				iter.remove();
-			}
-		}
-		for(DialogWindow w : diagWindows){
-			batch.setColor(w.color);
-			int x = Gdx.graphics.getWidth()/2-diagwindow.getWidth()/2;
-			int y = Gdx.graphics.getHeight()/2-diagwindow.getHeight()/2;
-			batch.draw(diagwindow, x, y);
-			batch.setColor(Color.WHITE);
-//			GlyphLayout lay = new GlyphLayout(fontDescription, w.message);
-			GlyphLayout lay = new GlyphLayout(fontDescription,w.message,Color.BLACK,360,Align.center,true);
-			fontDescription.setColor(Color.BLACK);
-//			fontDescription.draw(batch, w.message, position.x, position.y);
-			fontDescription.draw(batch, lay, x+lay.width/2-lay.width/2, y+diagwindow.getHeight()/2+20);
-			
-			
-			
-			fontTitle.draw(batch, w.title, x+10, y+diagwindow.getHeight()-10);
-		}
+
 		batch.end();
 	}
 
@@ -732,6 +695,139 @@ public class GameState extends State{
 		}
 
 	}
+	public void drawMortageProperties(){
+	  for(int property : board.getPropertyIndex()){
+
+      if((numPlayers == 2 || numPlayers == 3 || numPlayers == 4) && ((Property)board.getSpaces()[property]).getOwner() == board.getPlayers().get(0)){
+          for(Space p : board.mortgageProperties){
+            if(p.name.equalsIgnoreCase(board.getSpaces()[property].name)){
+              drawMortageProperty(0, property);
+                    
+            }
+          }
+
+      }else if((numPlayers == 2 || numPlayers == 3 || numPlayers == 4) && ((Property)board.getSpaces()[property]).getOwner() == board.getPlayers().get(1)){
+        
+        for(Space p : board.mortgageProperties){
+          if(p.name.equalsIgnoreCase(board.getSpaces()[property].name)){
+            drawMortageProperty(1, property);
+                  
+          }
+        }
+        
+
+      }else if((numPlayers == 3 || numPlayers == 4) && ((Property)board.getSpaces()[property]).getOwner() == board.getPlayers().get(2)){
+
+        for(Space p : board.mortgageProperties){
+          if(p.name.equalsIgnoreCase(board.getSpaces()[property].name)){
+            drawMortageProperty(2, property);
+                  
+          }
+        }
+        
+
+      }else if(numPlayers == 4 && ((Property)board.getSpaces()[property]).getOwner() == board.getPlayers().get(3)){
+
+        for(Space p : board.mortgageProperties){
+          if(p.name.equalsIgnoreCase(board.getSpaces()[property].name)){
+            drawMortageProperty(3, property);
+                  
+          }
+        }
+       
+      }
+
+    }
+	}
+	
+	public void drawMortageProperty(int player, int property){
+
+    if(property == 1){
+      batch.draw(getOwnedMortageTextureVert(player), 565, 7);
+    }else if(property == 3){
+      batch.draw(getOwnedMortageTextureVert(player), 447, 7);
+    }else if(property == 5){
+      batch.draw(getOwnedMortageTextureVert(player), 330, 7);
+    }else if(property == 6){
+      batch.draw(getOwnedMortageTextureVert(player), 272, 7);
+    }else if(property == 8){
+      batch.draw(getOwnedMortageTextureVert(player), 155, 7);
+    }else if(property == 9){
+      batch.draw(getOwnedMortageTextureVert(player), 97, 7);
+    }else if(property == 11){
+      batch.draw(getOwnedMortageTextureHoriz(player), 7, 97);
+    }else if(property == 12){
+      batch.draw(getOwnedMortageTextureHoriz(player), 7, 155);
+    }else if(property == 13){
+      batch.draw(getOwnedMortageTextureHoriz(player), 7, 212);
+    }else if(property == 14){
+      batch.draw(getOwnedMortageTextureHoriz(player), 7, 273);
+    }else if(property == 15){
+      batch.draw(getOwnedMortageTextureHoriz(player), 7, 330);
+    }else if(property == 16){
+      batch.draw(getOwnedMortageTextureHoriz(player), 7, 389);
+    }else if(property == 18){
+      batch.draw(getOwnedMortageTextureHoriz(player), 7, 506);
+    }else if(property == 19){
+      batch.draw(getOwnedMortageTextureHoriz(player), 7, 563);
+    }else if(property == 21){
+      batch.draw(getOwnedMortageTextureVert(player), 97, 623);
+    }else if(property == 23){
+      batch.draw(getOwnedMortageTextureVert(player), 214, 623);
+    }else if(property == 24){
+      batch.draw(getOwnedMortageTextureVert(player), 272, 623);
+    }else if(property == 25){
+      batch.draw(getOwnedMortageTextureVert(player), 331, 623);
+    }else if(property == 26){
+      batch.draw(getOwnedMortageTextureVert(player), 389, 623);
+    }else if(property == 27){
+      batch.draw(getOwnedMortageTextureVert(player), 447, 623);
+    }else if(property == 28){
+      batch.draw(getOwnedMortageTextureVert(player), 506, 623);
+    }else if(property == 29){
+      batch.draw(getOwnedMortageTextureVert(player), 564, 623);
+    }else if(property == 31){
+      batch.draw(getOwnedMortageTextureHoriz(player), 623, 564);
+    }else if(property == 32){
+      batch.draw(getOwnedMortageTextureHoriz(player), 623, 506);
+    }else if(property == 34){
+      batch.draw(getOwnedMortageTextureHoriz(player), 623, 388);
+    }else if(property == 35){
+      batch.draw(getOwnedMortageTextureHoriz(player), 623, 330);
+    }else if(property == 37){
+      batch.draw(getOwnedMortageTextureHoriz(player), 623, 214);
+    }else if(property == 39){
+      batch.draw(getOwnedMortageTextureHoriz(player), 623, 98);
+    }
+
+  }
+	public Texture getOwnedMortageTextureVert(int player){
+
+    if(player == 0){
+      return mortageOwnedVert;
+    }else if(player == 1){
+      return mortageOwnedVert;
+    }else if(player == 2){
+      return mortageOwnedVert;
+    }else{
+      return mortageOwnedVert;
+    }
+
+  }
+
+  public Texture getOwnedMortageTextureHoriz(int player){
+
+    if(player == 0){
+      return mortageOwnedHoriz;
+    }else if(player == 1){
+      return mortageOwnedHoriz;
+    }else if(player == 2){
+      return mortageOwnedHoriz;
+    }else{
+      return mortageOwnedHoriz;
+    }
+
+  }
 
 	public void drawProperty(int player, int property){
 
@@ -1047,12 +1143,5 @@ public class GameState extends State{
 		}
 
 	}
-	public static void addDiagWindow(String title,String message,Color color){
-		System.out.println("Window added");
-		diagWindows.add(new DialogWindow(title, message,color,false));
-	}
-	public static void addDiagWindow(String title,String message){
-		System.out.println("Window added");
-		diagWindows.add(new DialogWindow(title, message,Color.WHITE,false));
-	}
+
 }

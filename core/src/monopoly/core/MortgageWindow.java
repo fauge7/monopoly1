@@ -114,6 +114,8 @@ public class MortgageWindow {
 				int index = list.getSelectedIndex();
 				if(board.canMortgage(player, property.get(index))){
 					board.mortgageProperty(property.get(index));
+					
+					
 
 					createList(tempproperty,list);
 					tempPanel.revalidate();

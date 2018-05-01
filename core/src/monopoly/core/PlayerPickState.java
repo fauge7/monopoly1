@@ -1,7 +1,5 @@
 package monopoly.core;
 
-import java.util.ArrayList;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -167,6 +165,7 @@ public class PlayerPickState extends State{
 		}else{
 			batch.draw(fourPlayersUp, fourPlayersX, fourPlayersY);
 		}
+
 		batch.end();
 
 	}
